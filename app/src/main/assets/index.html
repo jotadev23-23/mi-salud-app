@@ -464,11 +464,6 @@ canvas{display:block}
       <div class="ct"><span>📋</span> Mis Medicamentos</div>
       <div id="medList"><div class="empty"><div class="ei">💊</div><p>Sin medicamentos registrados.</p></div></div>
     </div>
-    <div class="card">
-      <div class="ct"><span>📅</span> Agenda de Turnos</div>
-      <button class="btn btn-o mb12" style="font-size:13px;padding:10px" onclick="openMod('modalTurno')">+ Agendar Turno</button>
-      <div id="turnosList"><div class="empty"><div class="ei">📅</div><p>Sin turnos agendados.</p></div></div>
-    </div>
   </div>
 </div>
 
@@ -521,15 +516,51 @@ canvas{display:block}
     <p>Consultas, diagnósticos y más</p>
   </div>
   <div class="sb">
-    <div class="tabs">
-      <button class="tab active" onclick="setTab('consultas',this)">Consultas</button>
-      <button class="tab" onclick="setTab('enfermedades',this)">Enfermedades</button>
-      <button class="tab" onclick="setTab('alergias',this)">Alergias</button>
-      <button class="tab" onclick="setTab('vacunas',this)">Vacunas</button>
-      <button class="tab" onclick="setTab('dieta',this)">Dieta</button>
+    <div class="tabs" style="overflow-x:auto;white-space:nowrap;display:flex;-webkit-overflow-scrolling:touch">
+      <button class="tab active" onclick="setTab('turnos-hist',this)">📅 Turnos</button>
+      <button class="tab" onclick="setTab('agenda-hist',this)">🗓️ Calendario</button>
+      <button class="tab" onclick="setTab('consultas',this)">🏥 Consultas</button>
+      <button class="tab" onclick="setTab('enfermedades',this)">🩺 Enferm.</button>
+      <button class="tab" onclick="setTab('alergias',this)">⚠️ Alergias</button>
+      <button class="tab" onclick="setTab('vacunas',this)">💉 Vacunas</button>
+      <button class="tab" onclick="setTab('dieta',this)">🍽️ Dieta</button>
     </div>
 
-    <div id="tab-consultas">
+    <!-- TAB: TURNOS -->
+    <div id="tab-turnos-hist">
+      <button class="btn btn-azul mb12" style="background:var(--azul);color:#fff" onclick="openMod('modalTurno')">+ Agendar Turno</button>
+      <div class="card"><div id="turnosListHist"><div class="empty"><div class="ei">📅</div><p>Sin turnos agendados.</p></div></div></div>
+    </div>
+
+    <!-- TAB: CALENDARIO/AGENDA -->
+    <div id="tab-agenda-hist" style="display:none">
+      <div class="card">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="calNavMesHist(-1)">‹</button>
+          <span class="cal-month" id="calMonthLabelHist">—</span>
+          <button class="cal-nav-btn" onclick="calNavMesHist(1)">›</button>
+        </div>
+        <div class="cal-grid-header" id="calDowHist"></div>
+        <div class="cal-grid" id="calGridHist"></div>
+        <div class="cal-legend">
+          <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--naranja)"></div>Medicamento</div>
+          <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--azul)"></div>Turno</div>
+          <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--morado)"></div>Consulta</div>
+          <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--verde)"></div>Vacuna</div>
+        </div>
+      </div>
+      <div class="card" id="calDiaCardHist" style="display:none">
+        <div class="cal-events-title" id="calDiaLabelHist">📋 Eventos del día</div>
+        <div id="calDiaEventosHist"></div>
+      </div>
+      <div class="card">
+        <div class="ct"><span>🔜</span> Próximos 30 días</div>
+        <div id="calProximosHist"><div class="empty"><div class="ei">📅</div><p>Sin eventos próximos</p></div></div>
+      </div>
+    </div>
+
+    <!-- TAB: CONSULTAS -->
+    <div id="tab-consultas" style="display:none">
       <button class="btn btn-a mb12" onclick="openMod('modalConsulta')">+ Nueva Consulta</button>
       <div class="card"><div id="consultasList"><div class="empty"><div class="ei">🏥</div><p>Sin consultas.</p></div></div></div>
     </div>
@@ -784,7 +815,7 @@ canvas{display:block}
 <!-- ══════════════════ NAVIGATION ══════════════════ -->
 <nav class="nav">
   <button class="nb active" onclick="goPage('inicio')" id="nav-inicio"><span class="ni">🏠</span><span class="nl">Inicio</span></button>
-  <button class="nb" onclick="goPage('calendario')" id="nav-calendario"><span class="ni">📅</span><span class="nl">Agenda</span></button>
+  <button class="nb" onclick="goPage('recordatorios')" id="nav-recordatorios"><span class="ni">💊</span><span class="nl">Medicam.</span></button>
   <button class="nb" onclick="goPage('vitales')" id="nav-vitales"><span class="ni">❤️</span><span class="nl">Vitales</span></button>
   <button class="nb" onclick="goPage('historia')" id="nav-historia"><span class="ni">🏥</span><span class="nl">Historia</span></button>
   <button class="nb" style="position:relative" onclick="goPage('notifs')" id="nav-notifs"><span class="ni">🔔</span><span class="nl">Avisos</span><span class="notif-badge" id="notifBadge" style="display:none">0</span></button>
@@ -1324,9 +1355,31 @@ function editTurno(id){
   document.querySelector('#modalTurno .mt').textContent='✏️ Editar Turno';
   openMod('modalTurno');
 }
+function _buildTurnoHTML(t, deleteFn){
+  const f=new Date(t.fecha+'T00:00:00');
+  const pasado=f<new Date();
+  return `<div class="li" style="${pasado?'opacity:.5':''}">
+    <div class="icon-box" style="background:${pasado?'#e5e7eb':'var(--azul-bg)'}">
+      <span style="font-size:19px">📅</span>
+    </div>
+    <div class="lic">
+      <div class="lin">${t.esp}</div>
+      <div class="lid">${f.toLocaleDateString('es-AR')}${t.hora?' a las '+fmtH(t.hora):''}</div>
+      ${t.lugar?`<div class="lism">📍 ${t.lugar}</div>`:''}
+      ${t.nota?`<div class="lism">📝 ${t.nota}</div>`:''}
+    </div>
+    <button class="del-btn" style="color:var(--azul)" onclick="editTurno(${t.id})">✏️</button>
+    <button class="del-btn" onclick="${deleteFn}('turnos',${t.id})">🗑️</button>
+  </div>`;
+}
 function renderTurnos(){
-  const el=document.getElementById('turnosList');
-  if(!D.turnos.length){el.innerHTML='<div class="empty"><div class="ei">📅</div><p>Sin turnos.</p></div>';return;}
+  // (legacy — mantenido para compatibilidad)
+  renderTurnosHist();
+}
+function renderTurnosHist(){
+  const el=document.getElementById('turnosListHist');
+  if(!el) return;
+  if(!D.turnos.length){el.innerHTML='<div class="empty"><div class="ei">📅</div><p>Sin turnos agendados.</p></div>';return;}
   el.innerHTML=D.turnos.map(t=>{
     const f=new Date(t.fecha+'T00:00:00');
     const pasado=f<new Date();
@@ -1341,9 +1394,14 @@ function renderTurnos(){
         ${t.nota?`<div class="lism">📝 ${t.nota}</div>`:''}
       </div>
       <button class="del-btn" style="color:var(--azul)" onclick="editTurno(${t.id})">✏️</button>
-      <button class="del-btn" onclick="delItem('turnos',${t.id},renderTurnos)">🗑️</button>
+      <button class="del-btn" onclick="delItemAndRefreshTurnos(${t.id})">🗑️</button>
     </div>`;
   }).join('');
+}
+function delItemAndRefreshTurnos(id){
+  if(!confirm('¿Eliminar este turno?'))return;
+  D.turnos=D.turnos.filter(x=>x.id!==id);
+  save();renderTurnosHist();renderHomeTurnos();syncAlarmasNativas();
 }
 function renderHomeTurnos(){
   const el=document.getElementById('homeTurnos');
@@ -1469,9 +1527,13 @@ function drawChart(id,data,fn,label,color,minY,maxY){
 function setTab(t,btn){
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['consultas','enfermedades','alergias','vacunas','dieta'].forEach(x=>{
-    document.getElementById('tab-'+x).style.display=x===t?'block':'none';
+  const allTabs=['turnos-hist','agenda-hist','consultas','enfermedades','alergias','vacunas','dieta'];
+  allTabs.forEach(x=>{
+    const el=document.getElementById('tab-'+x);
+    if(el) el.style.display=x===t?'block':'none';
   });
+  if(t==='turnos-hist') renderTurnosHist();
+  if(t==='agenda-hist') renderCalendarioHist();
 }
 let editingConsultaId=null;
 function guardarConsulta(){
@@ -2136,6 +2198,106 @@ function mostrarEstadoImport(html,tipo){
   el.style.display='block';
   el.style.cssText=`display:block;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.6;background:${colores[tipo]||'var(--gris-bg)'}`;
   el.innerHTML=html;
+}
+
+
+// ═══════════════════ CALENDARIO EN HISTORIA ═══════════════════
+let calYearHist=new Date().getFullYear(), calMonthHist=new Date().getMonth(), calSelDayHist=null;
+
+function calNavMesHist(dir){
+  calMonthHist+=dir;
+  if(calMonthHist>11){calMonthHist=0;calYearHist++;}
+  if(calMonthHist<0){calMonthHist=11;calYearHist--;}
+  renderCalendarioHist();
+}
+
+function renderCalendarioHist(){
+  const dowEl=document.getElementById('calDowHist');
+  if(dowEl) dowEl.innerHTML=DIAS_DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  const lbl=document.getElementById('calMonthLabelHist');
+  if(lbl) lbl.textContent=MESES[calMonthHist]+' '+calYearHist;
+  const grid=document.getElementById('calGridHist');
+  if(!grid) return;
+  const events=getCalEvents();
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const primerDia=new Date(calYearHist,calMonthHist,1).getDay();
+  const diasMes=new Date(calYearHist,calMonthHist+1,0).getDate();
+  const diasMesAnt=new Date(calYearHist,calMonthHist,0).getDate();
+  let html='';
+  for(let i=primerDia-1;i>=0;i--) html+=`<div class="cal-cell other">${diasMesAnt-i}</div>`;
+  for(let d=1;d<=diasMes;d++){
+    const fecha=`${calYearHist}-${String(calMonthHist+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const esHoy=new Date(calYearHist,calMonthHist,d).getTime()===hoy.getTime();
+    const esSel=calSelDayHist===fecha;
+    const evs=events[fecha]||[];
+    const tipos=[...new Set(evs.map(e=>e.tipo))];
+    const dots=tipos.map(t=>`<div class="cal-dot ${esHoy?'cal-today-dot':''}" style="background:${CAL_COLORS[t]}"></div>`).join('');
+    const cls=['cal-cell',esHoy?'today':'',esSel&&!esHoy?'selected':''].filter(Boolean).join(' ');
+    html+=`<div class="${cls}" onclick="calSelectDayHist('${fecha}')">${d}${dots?`<div class="cal-dots">${dots}</div>`:''}</div>`;
+  }
+  const total=primerDia+diasMes;
+  const resto=total%7===0?0:7-(total%7);
+  for(let i=1;i<=resto;i++) html+=`<div class="cal-cell other">${i}</div>`;
+  grid.innerHTML=html;
+  renderCalProximosHist(events);
+}
+
+function calSelectDayHist(fecha){
+  calSelDayHist=fecha;
+  renderCalendarioHist();
+  const events=getCalEvents();
+  const evs=events[fecha]||[];
+  const card=document.getElementById('calDiaCardHist');
+  const lbl=document.getElementById('calDiaLabelHist');
+  const lista=document.getElementById('calDiaEventosHist');
+  if(!card||!lbl||!lista) return;
+  const f=new Date(fecha+'T00:00:00');
+  lbl.textContent='📋 '+f.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+  card.style.display='block';
+  if(!evs.length){
+    lista.innerHTML='<div style="color:var(--gris);font-size:13px;padding:8px 0">Sin eventos este día</div>';
+    return;
+  }
+  lista.innerHTML=evs.map(e=>`
+    <div class="cal-ev" style="background:${e.color}11;border-left-color:${e.color}">
+      <div style="font-size:20px">${e.icon}</div>
+      <div>
+        <div class="cal-ev-title">${e.title}</div>
+        ${e.sub?`<div class="cal-ev-sub">${e.sub}</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function renderCalProximosHist(events){
+  const el=document.getElementById('calProximosHist');
+  if(!el) return;
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const items=[];
+  for(let d=0;d<=30;d++){
+    const dd=new Date(hoy); dd.setDate(hoy.getDate()+d);
+    const k=dd.toISOString().substring(0,10);
+    const evs=(events[k]||[]).filter(e=>e.tipo!=='med');
+    evs.forEach(e=>{
+      const dias=d;
+      const label=dias===0?'Hoy':dias===1?'Mañana':dias+' días';
+      const color=dias===0?'var(--rojo)':dias<=3?'var(--naranja)':'var(--azul)';
+      items.push({dias,label,color,e,fecha:k});
+    });
+  }
+  if(!items.length){
+    el.innerHTML='<div class="empty"><div class="ei">📅</div><p>Sin eventos próximos</p></div>';
+    return;
+  }
+  el.innerHTML=items.slice(0,15).map(it=>`
+    <div class="prox-item">
+      <div style="font-size:20px">${it.e.icon}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:800;color:var(--oscuro)">${it.e.title}</div>
+        ${it.e.sub?`<div style="font-size:11px;color:var(--gris)">${it.e.sub}</div>`:''}
+        <div style="font-size:10px;color:var(--gris2);margin-top:1px">${new Date(it.fecha+'T00:00:00').toLocaleDateString('es-AR')}</div>
+      </div>
+      <span class="prox-badge" style="background:${it.color}18;color:${it.color}">${it.label}</span>
+    </div>`).join('');
 }
 
 // ═══════════════════ UTILS ═══════════════════
