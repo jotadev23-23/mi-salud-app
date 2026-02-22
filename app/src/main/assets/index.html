@@ -241,6 +241,58 @@ canvas{display:block}
 .info-row:last-child{border-bottom:none}
 .info-lbl{color:var(--gris);font-weight:600}
 .info-val{font-weight:800;color:var(--oscuro)}
+
+/* ── CALENDARIO ── */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-month{font-size:17px;font-weight:900;color:var(--oscuro);text-transform:capitalize}
+.cal-nav-btn{background:var(--gris-bg);border:none;border-radius:10px;width:38px;height:38px;font-size:18px;cursor:pointer;transition:all .15s;font-weight:700}
+.cal-nav-btn:active{transform:scale(.9)}
+.cal-grid-header{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.cal-dow{text-align:center;font-size:10px;font-weight:800;color:var(--gris2);padding:4px 0;text-transform:uppercase}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-cell{position:relative;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;transition:all .15s;font-size:13px;font-weight:700;color:var(--med);min-height:36px}
+.cal-cell:active{transform:scale(.88)}
+.cal-cell.other{color:var(--gris2);opacity:.35;pointer-events:none}
+.cal-cell.today{background:var(--verde);color:#fff !important;font-weight:900;box-shadow:0 2px 8px rgba(26,107,90,.35)}
+.cal-cell.selected{background:var(--azul-bg);border:2px solid var(--azul)}
+.cal-dots{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);display:flex;gap:2px}
+.cal-dot{width:4px;height:4px;border-radius:50%}
+.cal-today-dot{background:rgba(255,255,255,.8) !important}
+.cal-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid #f3f4f6}
+.cal-leg-item{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--gris)}
+.cal-leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cal-events-title{font-size:13px;font-weight:900;color:var(--oscuro);margin-bottom:8px}
+.cal-ev{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;margin-bottom:6px;border-left:4px solid transparent}
+.cal-ev-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.cal-ev-title{font-size:13px;font-weight:800;color:var(--oscuro)}
+.cal-ev-sub{font-size:11px;color:var(--gris);margin-top:1px}
+.prox-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6}
+.prox-item:last-child{border-bottom:none}
+.prox-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap}
+
+/* ── NOTIFICACIONES ── */
+.notif-badge{position:absolute;top:1px;right:8px;background:var(--rojo);color:#fff;border-radius:20px;padding:1px 5px;font-size:9px;font-weight:800;min-width:16px;text-align:center}
+.notif-item{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:all .15s}
+.notif-item:last-child{border-bottom:none}
+.notif-item:active{opacity:.7}
+.notif-item.unread .notif-title{color:var(--oscuro)}
+.notif-item.read .notif-title{color:var(--gris)}
+.notif-item.read .notif-icon-box{opacity:.6}
+.notif-icon-box{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.notif-title{font-size:13px;font-weight:800}
+.notif-body{font-size:12px;color:var(--gris);margin-top:2px;line-height:1.4}
+.notif-time{font-size:10px;color:var(--gris2);margin-top:3px}
+.unread-indicator{width:8px;height:8px;border-radius:50%;background:var(--azul);flex-shrink:0;margin-top:4px}
+
+/* ── UPDATE BANNER ── */
+.update-banner{display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:500;padding:0}
+.update-banner.show{display:block}
+.update-inner{background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 24px rgba(37,99,235,.5)}
+.update-text{flex:1;font-size:12px;font-weight:700;line-height:1.4}
+.update-text strong{font-size:13px;display:block}
+.update-action{background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:10px;padding:7px 14px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
+.update-close-btn{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:26px;height:26px;font-size:12px;cursor:pointer;flex-shrink:0}
+
 </style>
 </head>
 <body>
@@ -655,8 +707,76 @@ canvas{display:block}
     </div>
 
     <div class="card" style="background:linear-gradient(135deg,#0f766e11,#14b8a611)">
-      <div class="ct"><span>💙</span> Mi Salud — v2.0</div>
+      <div class="ct"><span>💙</span> Mi Salud — v5.0</div>
       <p style="font-size:13px;color:var(--gris);line-height:1.6">Aplicación diseñada especialmente para adultos mayores. Todos los datos se guardan en tu teléfono de forma segura y privada, sin conexión a internet.</p>
+    </div>
+  </div>
+</div>
+
+<!-- UPDATE BANNER -->
+<div class="update-banner" id="updateBanner">
+  <div class="update-inner">
+    <span style="font-size:24px">🔄</span>
+    <div class="update-text">
+      <strong id="updateBannerTitle">Nueva versión disponible</strong>
+      <span id="updateBannerSub">Tocá para ver cómo actualizar</span>
+    </div>
+    <button class="update-action" onclick="abrirModalUpdate()">Ver</button>
+    <button class="update-close-btn" onclick="cerrarUpdateBanner()">✕</button>
+  </div>
+</div>
+
+<!-- ══════════════════ PAGE: CALENDARIO ══════════════════ -->
+<div class="page" id="page-calendario">
+  <div class="hdr hdr-morado">
+    <h1>📅 Calendario</h1>
+    <p>Todos tus eventos y recordatorios</p>
+  </div>
+  <div class="sb">
+    <div class="card">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calNavMes(-1)">‹</button>
+        <span class="cal-month" id="calMonthLabel">—</span>
+        <button class="cal-nav-btn" onclick="calNavMes(1)">›</button>
+      </div>
+      <div class="cal-grid-header" id="calDow"></div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend">
+        <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--naranja)"></div>Medicamento</div>
+        <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--azul)"></div>Turno médico</div>
+        <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--morado)"></div>Consulta</div>
+        <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--verde)"></div>Vacuna</div>
+      </div>
+    </div>
+
+    <!-- Eventos del día seleccionado -->
+    <div class="card" id="calDiaCard" style="display:none">
+      <div class="cal-events-title" id="calDiaLabel">📋 Eventos del día</div>
+      <div id="calDiaEventos"></div>
+    </div>
+
+    <!-- Próximos 30 días -->
+    <div class="card">
+      <div class="ct"><span>🔜</span> Próximos 30 días</div>
+      <div id="calProximos">
+        <div class="empty"><div class="ei">📅</div><p>Sin eventos próximos</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ PAGE: NOTIFICACIONES ══════════════════ -->
+<div class="page" id="page-notifs">
+  <div class="hdr hdr-azul">
+    <h1>🔔 Notificaciones</h1>
+    <p id="notifsSubtitle">Centro de avisos</p>
+  </div>
+  <div class="sb">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button onclick="marcarTodasLeidas()" style="background:none;border:1.5px solid var(--gris2);color:var(--gris);border-radius:10px;padding:6px 12px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer">✓ Marcar todas como leídas</button>
+    </div>
+    <div class="card" id="notifsContainer">
+      <div class="empty"><div class="ei">🔔</div><p>Sin notificaciones todavía.</p></div>
     </div>
   </div>
 </div>
@@ -664,9 +784,10 @@ canvas{display:block}
 <!-- ══════════════════ NAVIGATION ══════════════════ -->
 <nav class="nav">
   <button class="nb active" onclick="goPage('inicio')" id="nav-inicio"><span class="ni">🏠</span><span class="nl">Inicio</span></button>
-  <button class="nb" onclick="goPage('recordatorios')" id="nav-recordatorios"><span class="ni">💊</span><span class="nl">Medicam.</span></button>
+  <button class="nb" onclick="goPage('calendario')" id="nav-calendario"><span class="ni">📅</span><span class="nl">Agenda</span></button>
   <button class="nb" onclick="goPage('vitales')" id="nav-vitales"><span class="ni">❤️</span><span class="nl">Vitales</span></button>
   <button class="nb" onclick="goPage('historia')" id="nav-historia"><span class="ni">🏥</span><span class="nl">Historia</span></button>
+  <button class="nb" style="position:relative" onclick="goPage('notifs')" id="nav-notifs"><span class="ni">🔔</span><span class="nl">Avisos</span><span class="notif-badge" id="notifBadge" style="display:none">0</span></button>
   <button class="nb" onclick="goPage('mas')" id="nav-mas"><span class="ni">⚙️</span><span class="nl">Más</span></button>
   <button class="nb" onclick="goPage('perfil')" id="nav-perfil"><span class="ni">👤</span><span class="nl">Perfil</span></button>
 </nav>
@@ -892,6 +1013,9 @@ canvas{display:block}
 
 <script>
 // ═══════════════════ ESTADO GLOBAL ═══════════════════
+const APP_VERSION = '5.0';
+const GITHUB_REPO = 'jotadev23-23/mi-salud-app';
+
 let D = {
   perfil:{},
   medicamentos:[],
@@ -907,7 +1031,9 @@ let D = {
   notas:[],
   fotos:[],
   water:{},
-  pin:''
+  pin:'',
+  notifs:[],
+  config:{}
 };
 
 function load(){try{const s=localStorage.getItem('msv2');if(s)D=Object.assign(D,JSON.parse(s));}catch(e){}}
@@ -954,9 +1080,13 @@ function guardarPin(){
 function goPage(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(x=>x.classList.remove('active'));
-  document.getElementById('page-'+p).classList.add('active');
-  document.getElementById('nav-'+p).classList.add('active');
+  const pg=document.getElementById('page-'+p);
+  if(pg)pg.classList.add('active');
+  const nb=document.getElementById('nav-'+p);
+  if(nb)nb.classList.add('active');
   if(p==='inicio')renderHome();
+  if(p==='calendario')renderCalendario();
+  if(p==='notifs'){renderNotifs();marcarTodasLeidas();}
   window.scrollTo(0,0);
 }
 
@@ -1181,7 +1311,7 @@ function guardarTurno(){
   D.turnos.sort((a,b)=>a.fecha>b.fecha?1:-1);
   save();closeMod('modalTurno');
   clearF(['tEsp','tLugar','tNota']);
-  renderTurnos();renderHome();toast('📅 Turno guardado');
+  renderTurnos();renderHome();toast('📅 Turno guardado');setTimeout(generarNotificacionesProgramadas,300);
 }
 function editTurno(id){
   const t=D.turnos.find(x=>x.id===id);if(!t)return;
@@ -1361,7 +1491,7 @@ function guardarConsulta(){
       indic:document.getElementById('cIndic').value,prox:document.getElementById('cProx').value});
   }
   save();closeMod('modalConsulta');clearF(['cEsp','cMedico','cMotivo','cDx','cIndic','cProx']);
-  renderConsultas();toast('✅ Consulta guardada');
+  renderConsultas();toast('✅ Consulta guardada');setTimeout(generarNotificacionesProgramadas,300);
 }
 function editConsulta(id){
   const c=D.consultas.find(x=>x.id===id);if(!c)return;
@@ -1590,7 +1720,43 @@ function verFoto(id){
   const f=D.fotos.find(x=>x.id==id);
   if(!f)return;
   const w=window.open('','_blank');
-  w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${f.data}" style="max-width:100%;max-height:100vh"></body></html>`);
+  w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${f.data}" style="max-width:100%;max-height:100vh">
+<!-- MODAL ACTUALIZACIÓN -->
+<div class="mo" id="modalUpdate" onclick="closeOut(event,'modalUpdate')">
+  <div class="modal">
+    <div class="mh"></div>
+    <div class="mt">🔄 Actualizar la app</div>
+    <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:14px;padding:16px 14px;margin-bottom:14px;text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">📱✨</div>
+      <div style="font-size:15px;font-weight:900;color:var(--azul)" id="updateModalTitle">Nueva versión disponible</div>
+      <div style="font-size:12px;color:var(--gris);margin-top:4px" id="updateModalDesc">Mejoras y nuevas funciones</div>
+    </div>
+    <div class="ct" style="margin-bottom:10px"><span>📋</span> Pasos para actualizar</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--med)">
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
+        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">1</span>
+        <span>Abrí <strong>GitHub</strong> en el navegador → entrá a tu repositorio → pestaña <strong>Actions</strong></span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
+        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">2</span>
+        <span>Clic en el último workflow verde ✅ → bajá a <strong>Artifacts</strong> → descargá <strong>MiSalud-APK</strong></span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
+        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">3</span>
+        <span>Descomprimí el .zip → instalá el <strong>.apk</strong> (tus datos <strong style="color:var(--verde)">no se borran</strong>)</span>
+      </div>
+    </div>
+    <div style="background:var(--verde-bg);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:12px;color:var(--verde);font-weight:700">
+      💡 Tip: Antes de actualizar hacé una <strong>Exportar datos</strong> desde Más → Copia de Seguridad, por las dudas.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn btn-g" onclick="abrirGitHub()">🔗 Abrir GitHub</button>
+      <button class="btn" style="background:var(--gris-bg);color:var(--gris)" onclick="posponerUpdate()">Más tarde</button>
+    </div>
+  </div>
+</div>
+
+</body></html>`);
 }
 
 // ═══════════════════ COMPARTIR ═══════════════════
@@ -1985,15 +2151,343 @@ function toast(msg){
   document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
 }
 
+
+// ═══════════════════ CALENDARIO ═══════════════════
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth(), calSelDay=null;
+const CAL_COLORS={med:'var(--naranja)',turno:'var(--azul)',consulta:'var(--morado)',vacuna:'var(--verde)'};
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DIAS_DOW=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+function calNavMes(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendario();
+}
+
+function getCalEvents(){
+  // Recopilar TODOS los eventos con fecha
+  const events={};
+  function addEv(dateStr,tipo,title,sub,icon){
+    if(!dateStr)return;
+    const k=dateStr.substring(0,10);
+    if(!events[k])events[k]=[];
+    events[k].push({tipo,title,sub,icon,color:CAL_COLORS[tipo]||'var(--gris)'});
+  }
+  // Medicamentos → repetir cada día
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  for(let d=0;d<60;d++){
+    const dd=new Date(hoy); dd.setDate(hoy.getDate()+d);
+    const k=dd.toISOString().substring(0,10);
+    D.medicamentos.forEach(m=>{
+      const freq=m.freq||'diario';
+      let incluir=false;
+      if(freq==='diario'||freq==='manana'||freq==='noche'||freq==='c8h'||freq==='c12h') incluir=true;
+      else if(freq==='semanal' && d%7===0) incluir=true;
+      if(incluir) addEv(k,'med','💊 '+m.nombre,fmtH(m.hora)+(m.dosis?' — '+m.dosis:''),'💊');
+    });
+  }
+  // Turnos
+  D.turnos.forEach(t=>addEv(t.fecha,'turno','📅 '+t.esp,(t.hora?fmtH(t.hora)+' ':'')+(t.lugar||''),'📅'));
+  // Consultas
+  D.consultas.forEach(c=>{
+    addEv(c.fecha,'consulta','🏥 '+c.esp,c.medico||'','🏥');
+    if(c.prox) addEv(c.prox,'turno','📅 Próximo turno: '+c.esp,c.medico||'','📅');
+  });
+  // Vacunas próximas dosis
+  D.vacunas.forEach(v=>{if(v.prox) addEv(v.prox,'vacuna','💉 Vacuna: '+(v.nombre||v.vacuna||''),'Próxima dosis','💉');});
+  return events;
+}
+
+function renderCalendario(){
+  // Header días semana
+  const dowEl=document.getElementById('calDow');
+  if(dowEl) dowEl.innerHTML=DIAS_DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+  // Label mes
+  const lbl=document.getElementById('calMonthLabel');
+  if(lbl) lbl.textContent=MESES[calMonth]+' '+calYear;
+
+  const grid=document.getElementById('calGrid');
+  if(!grid) return;
+
+  const events=getCalEvents();
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const primerDia=new Date(calYear,calMonth,1).getDay();
+  const diasMes=new Date(calYear,calMonth+1,0).getDate();
+  const diasMesAnt=new Date(calYear,calMonth,0).getDate();
+
+  let html='';
+  // Días mes anterior
+  for(let i=primerDia-1;i>=0;i--){
+    html+=`<div class="cal-cell other">${diasMesAnt-i}</div>`;
+  }
+  // Días del mes
+  for(let d=1;d<=diasMes;d++){
+    const fecha=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const esHoy=new Date(calYear,calMonth,d).getTime()===hoy.getTime();
+    const esSel=calSelDay===fecha;
+    const evs=events[fecha]||[];
+    const tipos=[...new Set(evs.map(e=>e.tipo))];
+    const dots=tipos.map(t=>`<div class="cal-dot ${esHoy?'cal-today-dot':''}" style="background:${CAL_COLORS[t]}"></div>`).join('');
+    const cls=['cal-cell', esHoy?'today':'', esSel&&!esHoy?'selected':''].filter(Boolean).join(' ');
+    html+=`<div class="${cls}" onclick="calSelectDay('${fecha}')">${d}${dots?`<div class="cal-dots">${dots}</div>`:''}</div>`;
+  }
+  // Completar última fila
+  const total=primerDia+diasMes;
+  const resto=total%7===0?0:7-(total%7);
+  for(let i=1;i<=resto;i++) html+=`<div class="cal-cell other">${i}</div>`;
+
+  grid.innerHTML=html;
+  renderCalProximos(events);
+}
+
+function calSelectDay(fecha){
+  calSelDay=fecha;
+  renderCalendario();
+  const events=getCalEvents();
+  const evs=events[fecha]||[];
+  const card=document.getElementById('calDiaCard');
+  const lbl=document.getElementById('calDiaLabel');
+  const lista=document.getElementById('calDiaEventos');
+  if(!card||!lbl||!lista) return;
+
+  const f=new Date(fecha+'T00:00:00');
+  lbl.textContent='📋 '+f.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+
+  if(!evs.length){
+    card.style.display='block';
+    lista.innerHTML='<div style="color:var(--gris);font-size:13px;padding:8px 0">Sin eventos este día</div>';
+    return;
+  }
+  card.style.display='block';
+  lista.innerHTML=evs.map(e=>`
+    <div class="cal-ev" style="background:${e.color}11;border-left-color:${e.color}">
+      <div style="font-size:20px">${e.icon}</div>
+      <div>
+        <div class="cal-ev-title">${e.title}</div>
+        ${e.sub?`<div class="cal-ev-sub">${e.sub}</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function renderCalProximos(events){
+  const el=document.getElementById('calProximos');
+  if(!el) return;
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const items=[];
+  for(let d=0;d<=30;d++){
+    const dd=new Date(hoy); dd.setDate(hoy.getDate()+d);
+    const k=dd.toISOString().substring(0,10);
+    const evs=(events[k]||[]).filter(e=>e.tipo!=='med'); // excluir medicamentos del listado
+    evs.forEach(e=>{
+      const dias=d;
+      const label=dias===0?'Hoy':dias===1?'Mañana':dias+' días';
+      const color=dias===0?'var(--rojo)':dias<=3?'var(--naranja)':'var(--azul)';
+      items.push({dias,label,color,e,fecha:k});
+    });
+  }
+  if(!items.length){
+    el.innerHTML='<div class="empty"><div class="ei">📅</div><p>Sin eventos en los próximos 30 días</p></div>';
+    return;
+  }
+  el.innerHTML=items.slice(0,15).map(it=>`
+    <div class="prox-item">
+      <div style="font-size:20px">${it.e.icon}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:800;color:var(--oscuro)">${it.e.title}</div>
+        ${it.e.sub?`<div style="font-size:11px;color:var(--gris)">${it.e.sub}</div>`:''}
+        <div style="font-size:10px;color:var(--gris2);margin-top:1px">${new Date(it.fecha+'T00:00:00').toLocaleDateString('es-AR')}</div>
+      </div>
+      <span class="prox-badge" style="background:${it.color}18;color:${it.color}">${it.label}</span>
+    </div>`).join('');
+}
+
+// ═══════════════════ NOTIFICACIONES ═══════════════════
+function crearNotif(tipo, titulo, cuerpo, icono, color){
+  const n={
+    id:Date.now()+Math.random(),
+    tipo,titulo,cuerpo,icono:icono||'🔔',color:color||'var(--azul-bg)',
+    fecha:new Date().toISOString(),
+    leida:false
+  };
+  if(!D.notifs) D.notifs=[];
+  // Evitar duplicados del mismo día mismo título
+  const k=titulo+'_'+new Date().toISOString().substring(0,10);
+  if(D.notifs.some(x=>x._key===k)) return;
+  n._key=k;
+  D.notifs.unshift(n);
+  if(D.notifs.length>100) D.notifs=D.notifs.slice(0,100);
+  save();
+  actualizarBadgeNotifs();
+  // Notificación nativa Android
+  if(window.AndroidBridge&&window.AndroidBridge.mostrarNotificacion){
+    try{window.AndroidBridge.mostrarNotificacion(titulo,cuerpo,tipo);}catch(e){}
+  }
+}
+
+function generarNotificacionesProgramadas(){
+  if(!D.notifs) D.notifs=[];
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const manana=new Date(hoy); manana.setDate(hoy.getDate()+1);
+  const en3dias=new Date(hoy); en3dias.setDate(hoy.getDate()+3);
+  const en7dias=new Date(hoy); en7dias.setDate(hoy.getDate()+7);
+
+  // Turnos: avisar hoy si el turno es mañana o en 3 días
+  D.turnos.forEach(t=>{
+    const ft=new Date(t.fecha+'T00:00:00');
+    if(ft.getTime()===manana.getTime())
+      crearNotif('turno','📅 Turno mañana','Tu turno de '+t.esp+' es mañana'+(t.hora?' a las '+fmtH(t.hora):'')+(t.lugar?' en '+t.lugar:''),'📅','var(--azul-bg)');
+    if(ft.getTime()===en3dias.getTime())
+      crearNotif('turno','📅 Turno en 3 días','Recordá: '+t.esp+' el '+ft.toLocaleDateString('es-AR'),'📅','var(--azul-bg)');
+  });
+
+  // Consultas: avisar si hay próximo turno pronto
+  D.consultas.forEach(cc=>{
+    if(!cc.prox) return;
+    const fp=new Date(cc.prox+'T00:00:00');
+    if(fp.getTime()===manana.getTime())
+      crearNotif('consulta','🏥 Consulta mañana','Próxima consulta con '+cc.esp+(cc.medico?' — '+cc.medico:''),'🏥','var(--morado-bg)');
+  });
+
+  // Vacunas: avisar si vence pronto
+  D.vacunas.forEach(v=>{
+    if(!v.prox) return;
+    const fv=new Date(v.prox+'T00:00:00');
+    const nombre=v.nombre||v.vacuna||'vacuna';
+    if(fv.getTime()===en7dias.getTime())
+      crearNotif('vacuna','💉 Vacuna en 7 días','Próxima dosis de '+nombre+' el '+fv.toLocaleDateString('es-AR'),'💉','var(--verde-bg)');
+    if(fv<=hoy && fv.getTime()!==hoy.getTime()-86400000)
+      crearNotif('vacuna','💉 Vacuna vencida','La dosis de '+nombre+' ya venció. Consultá con tu médico','💉','var(--rojo-bg)');
+  });
+
+  // Medicamentos: avisar si hay alguno pendiente hoy
+  const fechaHoy=hoy.toISOString().substring(0,10);
+  const pendientes=D.medicamentos.filter(m=>!m.tomados||!m.tomados[fechaHoy]);
+  if(pendientes.length>0){
+    const hora=new Date().getHours();
+    if(hora>=20){
+      crearNotif('med','💊 Medicamentos pendientes',pendientes.length+' medicamento(s) sin registrar hoy: '+pendientes.slice(0,3).map(m=>m.nombre).join(', '),'💊','var(--naranja-bg)');
+    }
+  }
+}
+
+function renderNotifs(){
+  const el=document.getElementById('notifsContainer');
+  if(!el) return;
+  if(!D.notifs||!D.notifs.length){
+    el.innerHTML='<div class="empty"><div class="ei">🔔</div><p>Sin notificaciones todavía.</p></div>';
+    return;
+  }
+  const sub=document.getElementById('notifsSubtitle');
+  const noLeidas=D.notifs.filter(n=>!n.leida).length;
+  if(sub) sub.textContent=noLeidas>0?noLeidas+' avisos sin leer':'Todo al día ✓';
+  el.innerHTML=D.notifs.map(n=>`
+    <div class="notif-item ${n.leida?'read':'unread'}">
+      <div class="notif-icon-box" style="background:${n.color}">${n.icono}</div>
+      <div style="flex:1">
+        <div class="notif-title">${n.titulo}</div>
+        <div class="notif-body">${n.cuerpo}</div>
+        <div class="notif-time">${fmtNotifTime(n.fecha)}</div>
+      </div>
+      ${!n.leida?'<div class="unread-indicator"></div>':''}
+    </div>`).join('');
+}
+
+function fmtNotifTime(iso){
+  if(!iso) return '';
+  const d=new Date(iso);
+  const ahora=new Date();
+  const diff=Math.floor((ahora-d)/60000);
+  if(diff<1) return 'Ahora mismo';
+  if(diff<60) return diff+' min';
+  if(diff<1440) return Math.floor(diff/60)+'h';
+  return d.toLocaleDateString('es-AR');
+}
+
+function marcarTodasLeidas(){
+  if(!D.notifs) return;
+  D.notifs.forEach(n=>n.leida=true);
+  save();
+  actualizarBadgeNotifs();
+  renderNotifs();
+}
+
+function actualizarBadgeNotifs(){
+  const badge=document.getElementById('notifBadge');
+  if(!badge) return;
+  const n=(D.notifs||[]).filter(x=>!x.leida).length;
+  if(n>0){badge.textContent=n>9?'9+':n;badge.style.display='block';}
+  else badge.style.display='none';
+}
+
+// ═══════════════════ VERIFICAR ACTUALIZACIONES ═══════════════════
+async function checkUpdate(){
+  try{
+    // Comparar versión guardada contra la actual
+    const lastDismissed=localStorage.getItem('updateDismissed');
+    if(lastDismissed===APP_VERSION) return; // ya la descartaron
+    // Intentar leer version.json del repo (si está conectado)
+    const r=await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/version.json`,
+      {cache:'no-cache'});
+    if(!r.ok) return;
+    const data=await r.json();
+    const remota=data.version||'';
+    if(remota && remota!==APP_VERSION && remota>APP_VERSION){
+      mostrarUpdateBanner(remota, data.descripcion||'Mejoras y correcciones');
+      crearNotif('update','🔄 Nueva versión: v'+remota,'Hay una actualización disponible. Tocá para ver cómo actualizar.','🔄','var(--azul-bg)');
+    }
+  }catch(e){
+    // Sin internet o sin version.json — sin problema
+  }
+}
+
+function mostrarUpdateBanner(version, desc){
+  const banner=document.getElementById('updateBanner');
+  const title=document.getElementById('updateBannerTitle');
+  const sub=document.getElementById('updateBannerSub');
+  const mTitle=document.getElementById('updateModalTitle');
+  const mDesc=document.getElementById('updateModalDesc');
+  if(title) title.textContent='Nueva versión v'+version+' disponible';
+  if(sub) sub.textContent=desc;
+  if(mTitle) mTitle.textContent='Versión v'+version+' disponible';
+  if(mDesc) mDesc.textContent=desc;
+  if(banner) banner.classList.add('show');
+  // Empujar contenido para que no tape
+  document.body.style.paddingTop='52px';
+}
+
+function cerrarUpdateBanner(){
+  const banner=document.getElementById('updateBanner');
+  if(banner) banner.classList.remove('show');
+  document.body.style.paddingTop='0';
+  localStorage.setItem('updateDismissed', APP_VERSION);
+}
+
+function abrirModalUpdate(){
+  cerrarUpdateBanner();
+  openMod('modalUpdate');
+}
+
+function posponerUpdate(){
+  closeMod('modalUpdate');
+  cerrarUpdateBanner();
+}
+
+function abrirGitHub(){
+  window.open('https://github.com/'+GITHUB_REPO+'/actions','_blank');
+}
+
+
 // ═══════════════════ SYNC ALARMAS NATIVAS ═══════════════════
 function syncAlarmasNativas(){
-  // Enviar medicamentos al sistema de alarmas nativo de Android
-  if(window.AndroidBridge && window.AndroidBridge.actualizarAlarmas){
-    try{
-      const medsJson=JSON.stringify(D.medicamentos||[]);
-      window.AndroidBridge.actualizarAlarmas(medsJson);
-    }catch(e){console.log('Android bridge error:',e);}
-  }
+  if(!window.AndroidBridge) return;
+  try{
+    if(window.AndroidBridge.actualizarAlarmas)
+      window.AndroidBridge.actualizarAlarmas(JSON.stringify(D.medicamentos||[]));
+    if(window.AndroidBridge.actualizarTurnos)
+      window.AndroidBridge.actualizarTurnos(JSON.stringify(D.turnos||[]));
+  }catch(e){console.log('Bridge error:',e);}
 }
 
 // ═══════════════════ INIT ═══════════════════
@@ -2016,9 +2510,52 @@ window.addEventListener('load',()=>{
   setTimeout(renderCharts,500);
   startAlarms();
   setTimeout(loadSoundConfig,200);
-  // Sincronizar alarmas con sistema nativo Android al iniciar
-  setTimeout(syncAlarmasNativas, 1000);
+  setTimeout(syncAlarmasNativas,1000);
+  // Notificaciones e inicialización
+  if(!D.notifs)D.notifs=[];
+  if(!D.config)D.config={};
+  setTimeout(()=>{
+    generarNotificacionesProgramadas();
+    actualizarBadgeNotifs();
+    checkUpdate();
+  },1500);
 });
 </script>
+
+<!-- MODAL ACTUALIZACIÓN -->
+<div class="mo" id="modalUpdate" onclick="closeOut(event,'modalUpdate')">
+  <div class="modal">
+    <div class="mh"></div>
+    <div class="mt">🔄 Actualizar la app</div>
+    <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:14px;padding:16px 14px;margin-bottom:14px;text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">📱✨</div>
+      <div style="font-size:15px;font-weight:900;color:var(--azul)" id="updateModalTitle">Nueva versión disponible</div>
+      <div style="font-size:12px;color:var(--gris);margin-top:4px" id="updateModalDesc">Mejoras y nuevas funciones</div>
+    </div>
+    <div class="ct" style="margin-bottom:10px"><span>📋</span> Pasos para actualizar</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--med)">
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
+        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">1</span>
+        <span>Abrí <strong>GitHub</strong> en el navegador → entrá a tu repositorio → pestaña <strong>Actions</strong></span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
+        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">2</span>
+        <span>Clic en el último workflow verde ✅ → bajá a <strong>Artifacts</strong> → descargá <strong>MiSalud-APK</strong></span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
+        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">3</span>
+        <span>Descomprimí el .zip → instalá el <strong>.apk</strong> (tus datos <strong style="color:var(--verde)">no se borran</strong>)</span>
+      </div>
+    </div>
+    <div style="background:var(--verde-bg);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:12px;color:var(--verde);font-weight:700">
+      💡 Tip: Antes de actualizar hacé una <strong>Exportar datos</strong> desde Más → Copia de Seguridad, por las dudas.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn btn-g" onclick="abrirGitHub()">🔗 Abrir GitHub</button>
+      <button class="btn" style="background:var(--gris-bg);color:var(--gris)" onclick="posponerUpdate()">Más tarde</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

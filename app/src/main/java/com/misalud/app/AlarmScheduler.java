@@ -123,6 +123,54 @@ public class AlarmScheduler {
         }
     }
 
+    // ── Programar alarmas para turnos ─────────────────────────────────────────
+    public static void scheduleTurnos(Context context, String turnosJson) {
+        try {
+            JSONArray turnos = new JSONArray(turnosJson);
+            AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            if (am == null) return;
+            for (int i = 0; i < turnos.length(); i++) {
+                JSONObject t = turnos.getJSONObject(i);
+                String fecha = t.optString("fecha", "");
+                String esp = t.optString("esp", "Turno médico");
+                String hora = t.optString("hora", "09:00");
+                String lugar = t.optString("lugar", "");
+                long id = t.getLong("id");
+                if (fecha.isEmpty()) continue;
+                // Alarma el día anterior a las 9am
+                String[] parts = hora.split(":");
+                int hh = Integer.parseInt(parts[0]);
+                int mm = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                try {
+                    java.util.Date fechaDate = sdf.parse(fecha);
+                    if (fechaDate == null) continue;
+                    Calendar calDiaAntes = Calendar.getInstance();
+                    calDiaAntes.setTime(fechaDate);
+                    calDiaAntes.add(Calendar.DAY_OF_YEAR, -1);
+                    calDiaAntes.set(Calendar.HOUR_OF_DAY, 9);
+                    calDiaAntes.set(Calendar.MINUTE, 0);
+                    calDiaAntes.set(Calendar.SECOND, 0);
+                    if (calDiaAntes.getTimeInMillis() <= System.currentTimeMillis()) continue;
+                    Intent intent = new Intent(context, AlarmReceiver.class);
+                    intent.putExtra(AlarmReceiver.EXTRA_TITULO, "📅 Turno mañana: " + esp);
+                    intent.putExtra(AlarmReceiver.EXTRA_MENSAJE, "Recordá: " + esp + " mañana" +
+                        (hora.isEmpty() ? "" : " a las " + hora) + (lugar.isEmpty() ? "" : " en " + lugar));
+                    intent.putExtra(AlarmReceiver.EXTRA_TIPO_SONIDO, "suave");
+                    intent.putExtra(AlarmReceiver.EXTRA_ALARM_ID, (int)((id + 5000) % Integer.MAX_VALUE));
+                    PendingIntent pi = PendingIntent.getBroadcast(context,
+                        (int)((id + 5000) % Integer.MAX_VALUE), intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calDiaAntes.getTimeInMillis(), pi);
+                    } else {
+                        am.setExact(AlarmManager.RTC_WAKEUP, calDiaAntes.getTimeInMillis(), pi);
+                    }
+                } catch (Exception ex) { ex.printStackTrace(); }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
     // ── Guardar config desde JS ───────────────────────────────────────────────
     public static void saveMedicamentos(Context context, String jsonMeds) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);

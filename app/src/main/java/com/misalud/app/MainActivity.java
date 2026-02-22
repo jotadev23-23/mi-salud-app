@@ -123,6 +123,11 @@ public class MainActivity extends AppCompatActivity {
          * @param medicamentosJson  JSON string con array de medicamentos
          */
         @JavascriptInterface
+        public void actualizarTurnos(String turnosJson) {
+            AlarmScheduler.scheduleTurnos(getApplicationContext(), turnosJson);
+        }
+
+        @JavascriptInterface
         public void actualizarAlarmas(String medicamentosJson) {
             AlarmScheduler.cancelAll(getApplicationContext());
             AlarmScheduler.saveMedicamentos(getApplicationContext(), medicamentosJson);
@@ -171,7 +176,29 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @JavascriptInterface
-        public String getVersion() { return "4.0"; }
+        public String getVersion() { return "5.0"; }
+
+        /**
+         * Llamado desde JS para mostrar notificacion nativa de cualquier tipo de evento.
+         * tipo: "turno", "consulta", "vacuna", "med", "update"
+         */
+        @JavascriptInterface
+        public void mostrarNotificacion(String titulo, String cuerpo, String tipo) {
+            AlarmReceiver.createChannels(getApplicationContext());
+            Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+            intent.putExtra(AlarmReceiver.EXTRA_TITULO, titulo);
+            intent.putExtra(AlarmReceiver.EXTRA_MENSAJE, cuerpo);
+            // Tipo update y turno usan sonido suave, med puede ser intenso segun config
+            String sonido = "med".equals(tipo) ? 
+                android.content.SharedPreferences.class.cast(
+                    getApplicationContext().getSharedPreferences("MiSaludAlarms", 0))
+                    .getString("tipoSonido", "suave") : "suave";
+            intent.putExtra(AlarmReceiver.EXTRA_TIPO_SONIDO, sonido);
+            int alarmId = (int)(System.currentTimeMillis() % Integer.MAX_VALUE);
+            intent.putExtra(AlarmReceiver.EXTRA_ALARM_ID, alarmId);
+            // Disparar inmediatamente via broadcast
+            getApplicationContext().sendBroadcast(intent);
+        }
     }
 
     // ── Permisos ──────────────────────────────────────────────────────────────

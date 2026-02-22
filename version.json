@@ -1,0 +1,11 @@
+{
+  "version": "5.0",
+  "descripcion": "Calendario, notificaciones de todos los eventos y aviso de actualizaciones",
+  "fecha": "2026-02-22",
+  "cambios": [
+    "Nuevo calendario con todos los eventos",
+    "Centro de notificaciones",
+    "Aviso automático de actualizaciones",
+    "Notificaciones nativas Android para turnos y vacunas"
+  ]
+}
