@@ -1106,6 +1106,7 @@ function guardarMed(){
   save();closeMod('modalMed');
   clearF(['mNombre','mDosis','mNota']);
   renderMeds();renderHome();toast('💊 Medicamento guardado');
+  syncAlarmasNativas();
 }
 function editMed(id){
   const m=D.medicamentos.find(x=>x.id===id);if(!m)return;
@@ -1711,6 +1712,12 @@ function playAlarmSound(){
 }
 
 function testSound(tipo){
+  // En Android nativo usa el sistema de sonidos real
+  if(window.AndroidBridge && window.AndroidBridge.probarSonido){
+    window.AndroidBridge.probarSonido(tipo);
+    toast(tipo==='intenso'?'🔔 Probando sonido intenso...':'🎵 Probando sonido suave...');
+    return;
+  }
   try{
     if(tipo==='intenso')playIntenso();
     else playSuave();
@@ -1735,6 +1742,10 @@ function selectSound(tipo){
     }
   });
   toast(tipo==='intenso'?'🔔 Sonido intenso seleccionado':'🎵 Sonido suave seleccionado');
+  // Notificar al sistema nativo Android
+  if(window.AndroidBridge && window.AndroidBridge.setTipoSonido){
+    window.AndroidBridge.setTipoSonido(tipo);
+  }
 }
 
 function loadSoundConfig(){
@@ -1966,11 +1977,23 @@ function delItem(key,id,rfn){
   if(!confirm('¿Eliminar este registro?'))return;
   D[key]=D[key].filter(x=>x.id!==id);
   save();rfn();
+  if(key==='medicamentos') syncAlarmasNativas();
 }
 function clearF(ids){ids.forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});}
 function toast(msg){
   const t=document.createElement('div');t.className='toast';t.textContent=msg;
   document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+}
+
+// ═══════════════════ SYNC ALARMAS NATIVAS ═══════════════════
+function syncAlarmasNativas(){
+  // Enviar medicamentos al sistema de alarmas nativo de Android
+  if(window.AndroidBridge && window.AndroidBridge.actualizarAlarmas){
+    try{
+      const medsJson=JSON.stringify(D.medicamentos||[]);
+      window.AndroidBridge.actualizarAlarmas(medsJson);
+    }catch(e){console.log('Android bridge error:',e);}
+  }
 }
 
 // ═══════════════════ INIT ═══════════════════
@@ -1993,6 +2016,8 @@ window.addEventListener('load',()=>{
   setTimeout(renderCharts,500);
   startAlarms();
   setTimeout(loadSoundConfig,200);
+  // Sincronizar alarmas con sistema nativo Android al iniciar
+  setTimeout(syncAlarmasNativas, 1000);
 });
 </script>
 </body>
