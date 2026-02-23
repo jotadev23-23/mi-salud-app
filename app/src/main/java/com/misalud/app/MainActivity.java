@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         ws.setGeolocationEnabled(true);
         ws.setMediaPlaybackRequiresUserGesture(false);
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        ws.setCacheMode(WebSettings.LOAD_DEFAULT);
+        ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
         ws.setLoadWithOverviewMode(true);
         ws.setUseWideViewPort(true);
         ws.setSupportZoom(false);
@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         requestAppPermissions();
-        webView.loadUrl("file:///android_asset/index.html");
+        webView.loadUrl("file:///android_asset/index.html?v=" + System.currentTimeMillis());
     }
 
     // ═══════════════════════════════════════════════════════════════

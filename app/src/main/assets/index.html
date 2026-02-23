@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1a6b5a">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -759,7 +762,7 @@ canvas{display:block}
     <span style="font-size:24px">🔄</span>
     <div class="update-text">
       <strong id="updateBannerTitle">Nueva versión disponible</strong>
-      <span id="updateBannerSub">Tocá aquí para actualizar app →</span>
+      <span id="updateBannerSub">Tocá aquí para actualizar →</span>
     </div>
     <span style="background:rgba(255,255,255,.25);border-radius:10px;padding:7px 14px;font-size:12px;font-weight:900;color:#fff;white-space:nowrap">Ver ›</span>
   </div>
@@ -2589,9 +2592,9 @@ let _updateData = null;
 
 async function checkUpdate(){
   try{
-    const r = await fetch(VERSION_JSON_URL, {cache:'no-cache'});
-    if(!r.ok) return;
-    const data = await r.json();
+    const resp = await fetch(VERSION_JSON_URL, {cache:'no-store'});
+    if(!resp.ok) return;
+    const data = await resp.json();
     const remota = (data.version||'').trim();
     if(!remota || remota === APP_VERSION) return;
     // Comparar numéricamente
@@ -2599,14 +2602,15 @@ async function checkUpdate(){
     const partsA = APP_VERSION.split('.').map(Number);
     let hayNueva = false;
     for(let i=0; i<Math.max(partsR.length,partsA.length); i++){
-      const r2 = partsR[i]||0, a = partsA[i]||0;
-      if(r2>a){hayNueva=true;break;}
-      if(r2<a) break;
+      const vR = partsR[i]||0, vA = partsA[i]||0;
+      if(vR>vA){hayNueva=true;break;}
+      if(vR<vA) break;
     }
     if(!hayNueva) return;
-    // No mostrar si el usuario ya instaló esta versión (guardado al tocar Instalar)
+    // No mostrar si ya fue instalada
     const yaInstalada = localStorage.getItem('updateInstalada_v');
     if(yaInstalada === remota) return;
+    // Guardar datos ANTES de mostrar — así están disponibles al tocar Ver
     _updateData = data;
     mostrarUpdateBanner(data);
     crearNotif('update','🔄 Actualización v'+remota+' disponible',
@@ -2632,7 +2636,17 @@ function cerrarUpdateBanner(){
   if(banner){ banner.classList.remove('show'); document.body.style.paddingTop='0'; }
 }
 
-function abrirModalUpdate(){
+async function abrirModalUpdate(){
+  // Si _updateData no cargó todavía, reintentamos el fetch
+  if(!_updateData){
+    try{
+      const resp = await fetch(VERSION_JSON_URL, {cache:'no-store'});
+      if(resp.ok){
+        const data = await resp.json();
+        _updateData = data;
+      }
+    }catch(e){}
+  }
   if(_updateData) renderModalUpdate(_updateData);
   openMod('modalUpdate');
 }
