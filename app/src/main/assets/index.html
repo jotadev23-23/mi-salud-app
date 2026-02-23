@@ -103,7 +103,7 @@ select.fi{cursor:pointer}
 .btn-outline{background:none;border:2px solid;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border-radius:12px;padding:8px 14px;transition:all .2s}
 
 /* ── MODAL ── */
-.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;backdrop-filter:blur(4px)}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;backdrop-filter:blur(4px)}
 .mo.open{display:flex;align-items:flex-end;justify-content:center}
 .modal{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:20px 18px 36px;max-height:88vh;overflow-y:auto;animation:slideUp .3s ease}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -1794,7 +1794,7 @@ function verFoto(id){
   w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${f.data}" style="max-width:100%;max-height:100vh">
 <!-- MODAL ACTUALIZACIÓN -->
 <!-- MODAL ACTUALIZACIÓN v9 -->
-<div class="mo" id="modalUpdate" onclick="closeOut(event,'modalUpdate')">
+<div class="mo" id="modalUpdate">
   <div class="modal">
     <div class="mh"></div>
     <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:16px;padding:18px 16px;margin-bottom:16px;color:#fff;text-align:center">
@@ -2627,12 +2627,26 @@ function mostrarUpdateBanner(data){
 function cerrarUpdateBanner(){
   // Solo cierra visualmente — reaparece al reabrir la app si no se actualizó
   const banner = document.getElementById('updateBanner');
-  if(banner){ banner.classList.remove('show'); document.body.style.paddingTop='0'; }
+  if(banner){
+    banner.style.display='';
+    banner.classList.remove('show');
+    document.body.style.paddingTop='0';
+  }
 }
 
 function abrirModalUpdate(){
-  cerrarUpdateBanner();
-  if(_updateData) renderModalUpdate(_updateData);
+  // Ocultar banner visualmente mientras el modal está abierto
+  const banner = document.getElementById('updateBanner');
+  if(banner) banner.style.display='none';
+  // Si todavía no cargó _updateData, volver a buscarlo antes de abrir
+  if(!_updateData){
+    checkUpdate().then(()=>{
+      if(_updateData) renderModalUpdate(_updateData);
+      openMod('modalUpdate');
+    });
+    return;
+  }
+  renderModalUpdate(_updateData);
   openMod('modalUpdate');
 }
 
@@ -2663,9 +2677,13 @@ function renderModalUpdate(data){
 
 function posponerUpdate(){
   closeMod('modalUpdate');
-  // No descarta permanentemente — el banner reaparece al volver a abrir
+  // Restaurar banner (sigue mostrando hasta que instalen)
   const banner = document.getElementById('updateBanner');
-  if(banner){ banner.classList.remove('show'); document.body.style.paddingTop='0'; }
+  if(banner && _updateData){
+    banner.style.display='';
+    banner.classList.add('show');
+    document.body.style.paddingTop='52px';
+  }
 }
 
 // Llamado desde botón "Actualizar ahora"
