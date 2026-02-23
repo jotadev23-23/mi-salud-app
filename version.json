@@ -1,12 +1,15 @@
 {
-  "version": "8.0",
-  "descripcion": "Alarmas para turnos, consultas y vacunas. Exportar a Descargas. Importar cualquier archivo.",
+  "version": "9.0",
+  "descripcion": "Actualizacion directa desde la app, alarmas para todos los eventos",
   "fecha": "2026-02-23",
+  "apk_url": "https://github.com/jotadev23-23/mi-salud-app/releases/latest/download/MiSalud.apk",
   "cambios": [
-    "Notificaciones nativas para TODOS los eventos con fecha",
-    "Alarma dia anterior y 2h antes del turno",
-    "Alarma 7 dias antes de vacuna proxima dosis",
-    "Exportar respaldo guarda en Descargas y muestra la ruta",
-    "Importar ahora soporta cualquier tipo de archivo"
+    "Actualizate sin salir de la app — un solo botón",
+    "Alarmas para turnos médicos (dia anterior + 2h antes)",
+    "Alarmas para consultas (dia anterior a las 9am)",
+    "Alarmas para vacunas (7 dias antes de la proxima dosis)",
+    "Exportar respaldo guarda directo en Descargas",
+    "Importar respaldo acepta cualquier archivo .json",
+    "Campana de notificaciones en la tarjeta de inicio"
   ]
 }

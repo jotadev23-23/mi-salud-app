@@ -293,6 +293,11 @@ canvas{display:block}
 .update-action{background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:10px;padding:7px 14px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
 .update-close-btn{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:26px;height:26px;font-size:12px;cursor:pointer;flex-shrink:0}
 
+
+/* ── UPDATE MODAL CHANGELOG ── */
+#umCambios li{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;background:var(--verde-bg);border-radius:10px;margin-bottom:6px;font-size:13px;color:var(--oscuro);font-weight:600}
+#umCambios li span.um-check{font-size:16px;flex-shrink:0}
+
 </style>
 </head>
 <body>
@@ -742,7 +747,7 @@ canvas{display:block}
     </div>
 
     <div class="card" style="background:linear-gradient(135deg,#0f766e11,#14b8a611)">
-      <div class="ct"><span>💙</span> Mi Salud — v5.0</div>
+      <div class="ct"><span>💙</span> Mi Salud — v9.0</div>
       <p style="font-size:13px;color:var(--gris);line-height:1.6">Aplicación diseñada especialmente para adultos mayores. Todos los datos se guardan en tu teléfono de forma segura y privada, sin conexión a internet.</p>
     </div>
   </div>
@@ -757,7 +762,7 @@ canvas{display:block}
       <span id="updateBannerSub">Tocá para ver cómo actualizar</span>
     </div>
     <button class="update-action" onclick="abrirModalUpdate()">Ver</button>
-    <button class="update-close-btn" onclick="cerrarUpdateBanner()">✕</button>
+    <button class="update-close-btn" onclick="cerrarUpdateBanner()" title="El aviso volverá al reabrir la app hasta que actualices">✕</button>
   </div>
 </div>
 
@@ -1047,8 +1052,9 @@ canvas{display:block}
 
 <script>
 // ═══════════════════ ESTADO GLOBAL ═══════════════════
-const APP_VERSION = '8.0';
+const APP_VERSION = '9.0';
 const GITHUB_REPO = 'jotadev23-23/mi-salud-app';
+const VERSION_JSON_URL = 'https://raw.githubusercontent.com/'+GITHUB_REPO+'/main/version.json';
 
 let D = {
   perfil:{},
@@ -1787,37 +1793,26 @@ function verFoto(id){
   const w=window.open('','_blank');
   w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${f.data}" style="max-width:100%;max-height:100vh">
 <!-- MODAL ACTUALIZACIÓN -->
+<!-- MODAL ACTUALIZACIÓN v9 -->
 <div class="mo" id="modalUpdate" onclick="closeOut(event,'modalUpdate')">
   <div class="modal">
     <div class="mh"></div>
-    <div class="mt">🔄 Actualizar la app</div>
-    <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:14px;padding:16px 14px;margin-bottom:14px;text-align:center">
-      <div style="font-size:36px;margin-bottom:8px">📱✨</div>
-      <div style="font-size:15px;font-weight:900;color:var(--azul)" id="updateModalTitle">Nueva versión disponible</div>
-      <div style="font-size:12px;color:var(--gris);margin-top:4px" id="updateModalDesc">Mejoras y nuevas funciones</div>
+    <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:16px;padding:18px 16px;margin-bottom:16px;color:#fff;text-align:center">
+      <div style="font-size:38px;margin-bottom:6px">✨</div>
+      <div style="font-size:17px;font-weight:900" id="umVersion">Nueva versión disponible</div>
+      <div style="font-size:12px;opacity:.85;margin-top:3px">Tus datos se conservan al actualizar</div>
     </div>
-    <div class="ct" style="margin-bottom:10px"><span>📋</span> Pasos para actualizar</div>
-    <div style="font-size:13px;line-height:1.7;color:var(--med)">
-      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
-        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">1</span>
-        <span>Abrí <strong>GitHub</strong> en el navegador → entrá a tu repositorio → pestaña <strong>Actions</strong></span>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
-        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">2</span>
-        <span>Clic en el último workflow verde ✅ → bajá a <strong>Artifacts</strong> → descargá <strong>MiSalud-APK</strong></span>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
-        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">3</span>
-        <span>Descomprimí el .zip → instalá el <strong>.apk</strong> (tus datos <strong style="color:var(--verde)">no se borran</strong>)</span>
+    <div style="font-size:13px;font-weight:800;color:var(--oscuro);margin-bottom:8px">🆕 Novedades de esta versión</div>
+    <ul id="umCambios" style="list-style:none;padding:0;margin:0 0 14px 0"></ul>
+    <div id="umProgress" style="display:none;margin-bottom:10px">
+      <div style="background:#e5e7eb;border-radius:20px;height:10px;overflow:hidden">
+        <div class="um-fill" style="height:100%;background:linear-gradient(90deg,var(--verde),var(--verde2));border-radius:20px;width:0%;transition:width .3s ease"></div>
       </div>
     </div>
-    <div style="background:var(--verde-bg);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:12px;color:var(--verde);font-weight:700">
-      💡 Tip: Antes de actualizar hacé una <strong>Exportar datos</strong> desde Más → Copia de Seguridad, por las dudas.
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <button class="btn btn-g" onclick="abrirGitHub()">🔗 Abrir GitHub</button>
-      <button class="btn" style="background:var(--gris-bg);color:var(--gris)" onclick="posponerUpdate()">Más tarde</button>
-    </div>
+    <div id="umStatus" style="font-size:12px;color:var(--gris);margin-bottom:10px;text-align:center;font-weight:700;min-height:18px"></div>
+    <button id="umBtnActualizar" class="btn" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-size:15px;font-weight:900;padding:14px;width:100%;margin-bottom:8px;border-radius:14px;border:none;cursor:pointer" onclick="iniciarDescargaAPK()">⬇️ Actualizar ahora</button>
+    <button id="umBtnInstalar" class="btn" style="display:none;background:linear-gradient(135deg,var(--verde),var(--verde2));color:#fff;font-size:15px;font-weight:900;padding:14px;width:100%;margin-bottom:8px;border-radius:14px;border:none;cursor:pointer" onclick="instalarAPK()">📲 Instalar actualización</button>
+    <button class="btn" style="background:var(--gris-bg);color:var(--gris);font-size:13px;width:100%" onclick="posponerUpdate()">Más tarde</button>
   </div>
 </div>
 
@@ -2590,60 +2585,143 @@ function actualizarBadgeNotifs(){
 }
 
 // ═══════════════════ VERIFICAR ACTUALIZACIONES ═══════════════════
+// ─── datos de la versión remota guardados al detectar update ───
+let _updateData = null;
+
 async function checkUpdate(){
   try{
-    // Comparar versión guardada contra la actual
-    const lastDismissed=localStorage.getItem('updateDismissed');
-    if(lastDismissed===APP_VERSION) return; // ya la descartaron
-    // Intentar leer version.json del repo (si está conectado)
-    const r=await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/version.json`,
-      {cache:'no-cache'});
+    const r = await fetch(VERSION_JSON_URL, {cache:'no-cache'});
     if(!r.ok) return;
-    const data=await r.json();
-    const remota=data.version||'';
-    if(remota && remota!==APP_VERSION && remota>APP_VERSION){
-      mostrarUpdateBanner(remota, data.descripcion||'Mejoras y correcciones');
-      crearNotif('update','🔄 Nueva versión: v'+remota,'Hay una actualización disponible. Tocá para ver cómo actualizar.','🔄','var(--azul-bg)');
+    const data = await r.json();
+    const remota = (data.version||'').trim();
+    if(!remota || remota === APP_VERSION) return;
+    // Comparar numéricamente
+    const partsR = remota.split('.').map(Number);
+    const partsA = APP_VERSION.split('.').map(Number);
+    let hayNueva = false;
+    for(let i=0; i<Math.max(partsR.length,partsA.length); i++){
+      const r2 = partsR[i]||0, a = partsA[i]||0;
+      if(r2>a){hayNueva=true;break;}
+      if(r2<a) break;
     }
-  }catch(e){
-    // Sin internet o sin version.json — sin problema
-  }
+    if(!hayNueva) return;
+    // No mostrar si el usuario ya instaló esta versión (guardado al tocar Instalar)
+    const yaInstalada = localStorage.getItem('updateInstalada_v');
+    if(yaInstalada === remota) return;
+    _updateData = data;
+    mostrarUpdateBanner(data);
+    crearNotif('update','🔄 Actualización v'+remota+' disponible',
+      (data.cambios||[]).slice(0,2).join(' • '),'🔄','var(--azul-bg)');
+  }catch(e){/* sin internet — ok */}
 }
 
-function mostrarUpdateBanner(version, desc){
-  const banner=document.getElementById('updateBanner');
-  const title=document.getElementById('updateBannerTitle');
-  const sub=document.getElementById('updateBannerSub');
-  const mTitle=document.getElementById('updateModalTitle');
-  const mDesc=document.getElementById('updateModalDesc');
-  if(title) title.textContent='Nueva versión v'+version+' disponible';
-  if(sub) sub.textContent=desc;
-  if(mTitle) mTitle.textContent='Versión v'+version+' disponible';
-  if(mDesc) mDesc.textContent=desc;
-  if(banner) banner.classList.add('show');
-  // Empujar contenido para que no tape
-  document.body.style.paddingTop='52px';
+function mostrarUpdateBanner(data){
+  const banner = document.getElementById('updateBanner');
+  const title  = document.getElementById('updateBannerTitle');
+  const sub    = document.getElementById('updateBannerSub');
+  if(title) title.textContent = '✨ Versión '+(data.version||'')+' disponible';
+  if(sub)   sub.textContent   = (data.cambios||[]).length+' mejoras nuevas';
+  if(banner){ banner.classList.add('show'); document.body.style.paddingTop='52px'; }
 }
 
 function cerrarUpdateBanner(){
-  const banner=document.getElementById('updateBanner');
-  if(banner) banner.classList.remove('show');
-  document.body.style.paddingTop='0';
-  localStorage.setItem('updateDismissed', APP_VERSION);
+  // Solo cierra visualmente — reaparece al reabrir la app si no se actualizó
+  const banner = document.getElementById('updateBanner');
+  if(banner){ banner.classList.remove('show'); document.body.style.paddingTop='0'; }
 }
 
 function abrirModalUpdate(){
   cerrarUpdateBanner();
+  if(_updateData) renderModalUpdate(_updateData);
   openMod('modalUpdate');
+}
+
+function renderModalUpdate(data){
+  const ver   = document.getElementById('umVersion');
+  const lista = document.getElementById('umCambios');
+  const apkBtn= document.getElementById('umBtnActualizar');
+  if(ver)   ver.textContent = 'Versión '+data.version;
+  if(lista && data.cambios){
+    lista.innerHTML = data.cambios.map(item=>
+      '<li><span class="um-check">✅</span><span>'+item+'</span></li>'
+    ).join('');
+  }
+  if(apkBtn && data.apk_url){
+    apkBtn.style.display='block';
+    apkBtn.dataset.url = data.apk_url;
+  } else if(apkBtn){
+    apkBtn.style.display='none';
+  }
+  // Reset progress
+  const prog = document.getElementById('umProgress');
+  const status= document.getElementById('umStatus');
+  const instBtn=document.getElementById('umBtnInstalar');
+  if(prog){ prog.style.display='none'; prog.querySelector('.um-fill').style.width='0%'; }
+  if(status) status.textContent='';
+  if(instBtn) instBtn.style.display='none';
 }
 
 function posponerUpdate(){
   closeMod('modalUpdate');
-  cerrarUpdateBanner();
+  // No descarta permanentemente — el banner reaparece al volver a abrir
+  const banner = document.getElementById('updateBanner');
+  if(banner){ banner.classList.remove('show'); document.body.style.paddingTop='0'; }
 }
 
-function abrirGitHub(){
-  window.open('https://github.com/'+GITHUB_REPO+'/actions','_blank');
+// Llamado desde botón "Actualizar ahora"
+function iniciarDescargaAPK(){
+  const btn = document.getElementById('umBtnActualizar');
+  const url = btn ? btn.dataset.url : '';
+  if(!url){ toast('❌ No se encontró el link de descarga'); return; }
+  if(!window.AndroidBridge||!window.AndroidBridge.descargarAPK){
+    toast('Solo disponible en la app Android');
+    return;
+  }
+  // UI: mostrar progreso
+  btn.disabled = true;
+  btn.textContent = '⏳ Descargando...';
+  const prog = document.getElementById('umProgress');
+  const status= document.getElementById('umStatus');
+  if(prog) prog.style.display='block';
+  if(status) status.textContent = 'Iniciando descarga...';
+  window.AndroidBridge.descargarAPK(url);
+}
+
+// Callbacks desde Java
+function onApkProgreso(pct){
+  const fill  = document.querySelector('#umProgress .um-fill');
+  const status= document.getElementById('umStatus');
+  if(fill)  fill.style.width = pct+'%';
+  if(status)status.textContent = 'Descargando... '+pct+'%';
+  if(pct>=100){
+    if(status) status.textContent = '✅ Descarga completa. Instalando...';
+  }
+}
+
+function onApkDescargado(path){
+  const status = document.getElementById('umStatus');
+  const instBtn= document.getElementById('umBtnInstalar');
+  const descBtn= document.getElementById('umBtnActualizar');
+  if(status) status.textContent = '✅ Descarga lista. Tocá Instalar para continuar.';
+  if(instBtn){ instBtn.style.display='block'; instBtn.dataset.path=path; }
+  if(descBtn){ descBtn.style.display='none'; }
+}
+
+function instalarAPK(){
+  const btn = document.getElementById('umBtnInstalar');
+  const path= btn ? btn.dataset.path : '';
+  if(window.AndroidBridge&&window.AndroidBridge.instalarAPK){
+    // Marcar como instalada para no volver a mostrar si algo falla antes de reiniciar
+    if(_updateData) localStorage.setItem('updateInstalada_v', _updateData.version||'');
+    window.AndroidBridge.instalarAPK(path);
+  }
+}
+
+function onApkError(msg){
+  const status= document.getElementById('umStatus');
+  const descBtn=document.getElementById('umBtnActualizar');
+  if(status) status.textContent = '❌ '+msg;
+  if(descBtn){ descBtn.disabled=false; descBtn.textContent='🔄 Reintentar'; }
 }
 
 
@@ -2716,39 +2794,6 @@ window.addEventListener('load',()=>{
 </script>
 
 <!-- MODAL ACTUALIZACIÓN -->
-<div class="mo" id="modalUpdate" onclick="closeOut(event,'modalUpdate')">
-  <div class="modal">
-    <div class="mh"></div>
-    <div class="mt">🔄 Actualizar la app</div>
-    <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:14px;padding:16px 14px;margin-bottom:14px;text-align:center">
-      <div style="font-size:36px;margin-bottom:8px">📱✨</div>
-      <div style="font-size:15px;font-weight:900;color:var(--azul)" id="updateModalTitle">Nueva versión disponible</div>
-      <div style="font-size:12px;color:var(--gris);margin-top:4px" id="updateModalDesc">Mejoras y nuevas funciones</div>
-    </div>
-    <div class="ct" style="margin-bottom:10px"><span>📋</span> Pasos para actualizar</div>
-    <div style="font-size:13px;line-height:1.7;color:var(--med)">
-      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
-        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">1</span>
-        <span>Abrí <strong>GitHub</strong> en el navegador → entrá a tu repositorio → pestaña <strong>Actions</strong></span>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
-        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">2</span>
-        <span>Clic en el último workflow verde ✅ → bajá a <strong>Artifacts</strong> → descargá <strong>MiSalud-APK</strong></span>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
-        <span style="background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;margin-top:1px">3</span>
-        <span>Descomprimí el .zip → instalá el <strong>.apk</strong> (tus datos <strong style="color:var(--verde)">no se borran</strong>)</span>
-      </div>
-    </div>
-    <div style="background:var(--verde-bg);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:12px;color:var(--verde);font-weight:700">
-      💡 Tip: Antes de actualizar hacé una <strong>Exportar datos</strong> desde Más → Copia de Seguridad, por las dudas.
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <button class="btn btn-g" onclick="abrirGitHub()">🔗 Abrir GitHub</button>
-      <button class="btn" style="background:var(--gris-bg);color:var(--gris)" onclick="posponerUpdate()">Más tarde</button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
