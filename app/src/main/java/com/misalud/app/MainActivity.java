@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
                     req.setDescription("Nueva versión disponible");
                     req.setNotificationVisibility(
                         DownloadManager.Request.VISIBILITY_VISIBLE);
-                    req.setDestinationPublicDir(
+                    req.setDestinationInExternalPublicDir(
                         Environment.DIRECTORY_DOWNLOADS, "MiSalud-update.apk");
                     req.setMimeType("application/vnd.android.package-archive");
                     downloadId = dm.enqueue(req);
@@ -312,8 +312,9 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void probarSonido(String tipo) {
             AlarmReceiver.playSound(getApplicationContext(), tipo);
-            new Handler(Looper.getMainLooper()).postDelayed(
-                AlarmReceiver::stopSound, 3000);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override public void run() { AlarmReceiver.stopSound(); }
+            }, 3000);
         }
 
         @JavascriptInterface
