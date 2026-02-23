@@ -48,39 +48,38 @@ jobs:
       - name: local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Generar keystore si no existe en Secrets
+      - name: Generar keystore
         run: |
-          if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then
-            echo "Generando keystore temporal..."
-            keytool -genkeypair \
-              -alias misalud \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 10000 \
-              -storepass misalud123 \
-              -keypass misalud123 \
-              -dname "CN=MiSalud, OU=App, O=MiSalud, L=AR, S=AR, C=AR" \
-              -keystore misalud.keystore
-            echo "KEYSTORE_GENERADO=true" >> $GITHUB_ENV
-          else
-            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > misalud.keystore
-            echo "KEYSTORE_GENERADO=false" >> $GITHUB_ENV
-          fi
+          keytool -genkeypair \
+            -alias misalud \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass misalud123 \
+            -keypass misalud123 \
+            -dname "CN=MiSalud, OU=App, O=MiSalud, L=AR, S=AR, C=AR" \
+            -keystore app/misalud.keystore
+          echo "Keystore generado OK"
 
-      - name: Compilar APK Release firmado
-        run: ./gradlew assembleRelease --no-daemon
-        env:
-          KEYSTORE_PATH: ${{ github.workspace }}/misalud.keystore
-          KEY_ALIAS: misalud
-          KEY_PASSWORD: misalud123
-          STORE_PASSWORD: misalud123
+      - name: Compilar APK debug
+        run: ./gradlew assembleDebug --no-daemon
 
-      - name: Localizar APK
+      - name: Firmar APK con keystore propio
         run: |
-          APK=$(find . -name "*.apk" | grep -i release | head -1)
-          if [ -z "$APK" ]; then APK=$(find . -name "*.apk" | head -1); fi
-          echo "APK: $APK"
-          cp "$APK" MiSalud.apk
+          APK=$(find . -name "*.apk" | head -1)
+          echo "APK sin firmar: $APK"
+          # Alinear
+          $ANDROID_SDK_ROOT/build-tools/34.0.0/zipalign -v 4 "$APK" MiSalud-aligned.apk || \
+          $ANDROID_SDK_ROOT/build-tools/$(ls $ANDROID_SDK_ROOT/build-tools | tail -1)/zipalign -v 4 "$APK" MiSalud-aligned.apk
+          # Firmar
+          $ANDROID_SDK_ROOT/build-tools/$(ls $ANDROID_SDK_ROOT/build-tools | tail -1)/apksigner sign \
+            --ks app/misalud.keystore \
+            --ks-key-alias misalud \
+            --ks-pass pass:misalud123 \
+            --key-pass pass:misalud123 \
+            --out MiSalud.apk \
+            MiSalud-aligned.apk
+          echo "APK firmado:"
           ls -lh MiSalud.apk
 
       - name: Subir APK como artifact
