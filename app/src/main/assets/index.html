@@ -2582,10 +2582,12 @@ async function checkUpdate(){
       if(vR<vA) break;
     }
     if(!hayNueva) return;
-    // No mostrar si ya fue instalada
+    // No mostrar si la versión remota ES la misma que ya tenemos instalada
+    if(remota === APP_VERSION) return;
+    // No mostrar si el usuario ya tocó Instalar para esta versión
     const yaInstalada = localStorage.getItem('updateInstalada_v');
     if(yaInstalada === remota) return;
-    // Guardar datos ANTES de mostrar — así están disponibles al tocar Ver
+    // Guardar datos ANTES de mostrar
     _updateData = data;
     mostrarUpdateBanner(data);
     crearNotif('update','🔄 Actualización v'+remota+' disponible',
@@ -2689,16 +2691,19 @@ function onApkDescargado(path){
   const status = document.getElementById('umStatus');
   const instBtn= document.getElementById('umBtnInstalar');
   const descBtn= document.getElementById('umBtnActualizar');
-  if(status) status.textContent = '✅ Descarga lista. Tocá Instalar para continuar.';
-  if(instBtn){ instBtn.style.display='block'; instBtn.dataset.path=path; }
-  if(descBtn){ descBtn.style.display='none'; }
+  if(status) status.textContent = '✅ Descarga completa. Instalando...';
+  if(descBtn) descBtn.style.display='none';
+  // Guardar path globalmente (no solo en dataset, que puede perderse)
+  window._apkPath = path;
+  if(instBtn){ instBtn.style.display='block'; }
+  // Instalar automáticamente sin que el usuario tenga que tocar otro botón
+  setTimeout(function(){ instalarAPK(); }, 800);
 }
 
 function instalarAPK(){
-  const btn = document.getElementById('umBtnInstalar');
-  const path= btn ? btn.dataset.path : '';
+  // Usar path global o vacío (Java igual busca el archivo en Downloads)
+  const path = window._apkPath || '';
   if(window.AndroidBridge&&window.AndroidBridge.instalarAPK){
-    // Marcar como instalada para no volver a mostrar si algo falla antes de reiniciar
     if(_updateData) localStorage.setItem('updateInstalada_v', _updateData.version||'');
     window.AndroidBridge.instalarAPK(path);
   }
@@ -2775,6 +2780,11 @@ window.addEventListener('load',()=>{
   setTimeout(()=>{
     generarNotificacionesProgramadas();
     actualizarBadgeNotifs();
+    // Si ya instalamos esta versión, limpiar banner residual
+    const yaInstalada = localStorage.getItem('updateInstalada_v');
+    if(yaInstalada === APP_VERSION){
+      cerrarUpdateBanner();
+    }
     checkUpdate();
   },1500);
 });
