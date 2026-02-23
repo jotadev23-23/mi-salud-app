@@ -14,25 +14,16 @@ android {
         versionName "9.0"
     }
 
-    signingConfigs {
-        release {
-            storeFile     file(System.getenv("KEYSTORE_PATH") ?: "misalud.keystore")
-            storePassword System.getenv("STORE_PASSWORD") ?: "misalud123"
-            keyAlias      System.getenv("KEY_ALIAS")       ?: "misalud"
-            keyPassword   System.getenv("KEY_PASSWORD")    ?: "misalud123"
-        }
-    }
-
     buildTypes {
+        debug {
+            debuggable true
+            // debug usa la firma por defecto de Android, no necesita keystore
+        }
         release {
             debuggable false
             minifyEnabled false
-            signingConfig signingConfigs.release
+            // La firma se configura en build.yml via variables de entorno
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-        debug {
-            debuggable true
-            signingConfig signingConfigs.release
         }
     }
 
