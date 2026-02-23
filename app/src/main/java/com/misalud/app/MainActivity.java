@@ -8,10 +8,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Vibrator;
+import android.os.VibrationEffect;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.webkit.ConsoleMessage;
@@ -42,38 +47,31 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST   = 2;
     private static final int INSTALL_PERMISSION   = 3;
     private boolean fileChooserForJson = false;
-
-    // APK download tracking
     private long downloadId = -1;
-    private String pendingApkPath = "";
 
-    private BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context ctx, Intent intent) {
             long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-            if (id == downloadId) {
-                // Query download status
-                DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                DownloadManager.Query q = new DownloadManager.Query();
-                q.setFilterById(downloadId);
-                android.database.Cursor cursor = dm.query(q);
-                if (cursor != null && cursor.moveToFirst()) {
-                    int statusCol = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                    int status = cursor.getInt(statusCol);
-                    int localUriCol = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
-                    String localUri = cursor.getString(localUriCol);
-                    cursor.close();
-                    if (status == DownloadManager.STATUS_SUCCESSFUL && localUri != null) {
-                        pendingApkPath = localUri.replace("file://", "");
-                        runOnUiThread(() -> {
-                            webView.evaluateJavascript(
-                                "onApkDescargado('" + pendingApkPath + "')", null);
-                        });
-                    } else {
-                        runOnUiThread(() -> {
-                            webView.evaluateJavascript("onApkError('Descarga fallida')", null);
-                        });
-                    }
+            if (id != downloadId) return;
+            DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            if (dm == null) return;
+            DownloadManager.Query q = new DownloadManager.Query();
+            q.setFilterById(downloadId);
+            Cursor cursor = dm.query(q);
+            if (cursor != null && cursor.moveToFirst()) {
+                int statusCol = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                int uriCol    = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+                int status    = cursor.getInt(statusCol);
+                String uri    = cursor.getString(uriCol);
+                cursor.close();
+                if (status == DownloadManager.STATUS_SUCCESSFUL && uri != null) {
+                    final String path = uri.replace("file://", "");
+                    new Handler(Looper.getMainLooper()).post(() ->
+                        webView.evaluateJavascript("onApkDescargado('" + path + "')", null));
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() ->
+                        webView.evaluateJavascript("onApkError('Descarga fallida')", null));
                 }
             }
         }
@@ -85,27 +83,25 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         AlarmReceiver.createChannels(this);
-
-        // Register download receiver
         registerReceiver(downloadReceiver,
             new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
         webView = findViewById(R.id.webview);
-        WebSettings s = webView.getSettings();
-        s.setJavaScriptEnabled(true);
-        s.setDomStorageEnabled(true);
-        s.setDatabaseEnabled(true);
-        s.setAllowFileAccess(true);
-        s.setAllowContentAccess(true);
-        s.setGeolocationEnabled(true);
-        s.setMediaPlaybackRequiresUserGesture(false);
-        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        s.setCacheMode(WebSettings.LOAD_DEFAULT);
-        s.setLoadWithOverviewMode(true);
-        s.setUseWideViewPort(true);
-        s.setSupportZoom(false);
-        s.setBuiltInZoomControls(false);
-        s.setDisplayZoomControls(false);
+        WebSettings ws = webView.getSettings();
+        ws.setJavaScriptEnabled(true);
+        ws.setDomStorageEnabled(true);
+        ws.setDatabaseEnabled(true);
+        ws.setAllowFileAccess(true);
+        ws.setAllowContentAccess(true);
+        ws.setGeolocationEnabled(true);
+        ws.setMediaPlaybackRequiresUserGesture(false);
+        ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        ws.setCacheMode(WebSettings.LOAD_DEFAULT);
+        ws.setLoadWithOverviewMode(true);
+        ws.setUseWideViewPort(true);
+        ws.setSupportZoom(false);
+        ws.setBuiltInZoomControls(false);
+        ws.setDisplayZoomControls(false);
 
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
 
@@ -128,7 +124,9 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onGeolocationPermissionsShowPrompt(String origin,
-                    GeolocationPermissions.Callback cb) { cb.invoke(origin, true, false); }
+                    GeolocationPermissions.Callback cb) {
+                cb.invoke(origin, true, false);
+            }
             @Override
             public void onPermissionRequest(PermissionRequest request) {
                 request.grant(request.getResources());
@@ -139,20 +137,20 @@ public class MainActivity extends AppCompatActivity {
                 filePathCallback = filePath;
                 if (fileChooserForJson) {
                     fileChooserForJson = false;
-                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    intent.setType("*/*");
-                    intent.putExtra(Intent.EXTRA_MIME_TYPES,
-                        new String[]{"application/json","text/plain","*/*"});
+                    Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                    i.addCategory(Intent.CATEGORY_OPENABLE);
+                    i.setType("*/*");
+                    i.putExtra(Intent.EXTRA_MIME_TYPES,
+                        new String[]{"application/json", "text/plain", "*/*"});
                     startActivityForResult(
-                        Intent.createChooser(intent, "Seleccionar respaldo .json"),
+                        Intent.createChooser(i, "Seleccionar respaldo .json"),
                         FILE_CHOOSER_REQUEST);
                 } else {
-                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    intent.setType("image/*");
+                    Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                    i.addCategory(Intent.CATEGORY_OPENABLE);
+                    i.setType("image/*");
                     Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    Intent chooser = Intent.createChooser(intent, "Seleccionar imagen");
+                    Intent chooser = Intent.createChooser(i, "Seleccionar imagen");
                     chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{camera});
                     startActivityForResult(chooser, FILE_CHOOSER_REQUEST);
                 }
@@ -167,105 +165,84 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ═══════════════════════════════════════════════════════════════
-    //  JAVASCRIPT BRIDGE
-    // ═══════════════════════════════════════════════════════════════
     public class AndroidBridge {
 
-        /** Descarga el APK desde la URL y reporta progreso a JS */
         @JavascriptInterface
-        public void descargarAPK(String apkUrl) {
+        public void descargarAPK(final String apkUrl) {
             runOnUiThread(() -> {
                 try {
-                    // Verificar permiso de instalación de fuentes desconocidas (Android 8+)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         if (!getPackageManager().canRequestPackageInstalls()) {
-                            // Pedir permiso — cuando regrese, JS reintentará
-                            Intent intent = new Intent(
-                                Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                                Uri.parse("package:" + getPackageName()));
-                            startActivityForResult(intent, INSTALL_PERMISSION);
+                            startActivityForResult(
+                                new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                                    Uri.parse("package:" + getPackageName())),
+                                INSTALL_PERMISSION);
                             webView.evaluateJavascript(
-                                "onApkError('Primero habilitá la instalación desde fuentes desconocidas y volvé a tocar Actualizar')", null);
+                                "onApkError('Habilitá instalacion de fuentes desconocidas y volvé a intentar')", null);
                             return;
                         }
                     }
-
-                    // Borrar APK anterior si existe
                     File apkFile = new File(
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                        "MiSalud-update.apk");
+                        Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_DOWNLOADS), "MiSalud-update.apk");
                     if (apkFile.exists()) apkFile.delete();
 
                     DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl));
-                    request.setTitle("Mi Salud — Actualizando...");
-                    request.setDescription("Descargando nueva versión");
-                    request.setNotificationVisibility(
+                    if (dm == null) return;
+                    DownloadManager.Request req = new DownloadManager.Request(Uri.parse(apkUrl));
+                    req.setTitle("Mi Salud — Descargando actualización");
+                    req.setDescription("Nueva versión disponible");
+                    req.setNotificationVisibility(
                         DownloadManager.Request.VISIBILITY_VISIBLE);
-                    request.setDestinationPublicDir(
+                    req.setDestinationPublicDir(
                         Environment.DIRECTORY_DOWNLOADS, "MiSalud-update.apk");
-                    request.setMimeType("application/vnd.android.package-archive");
-                    request.allowScanningByMediaScanner();
+                    req.setMimeType("application/vnd.android.package-archive");
+                    downloadId = dm.enqueue(req);
 
-                    downloadId = dm.enqueue(request);
-
-                    // Poll progress in background thread
+                    // Poll progress
+                    final DownloadManager dmPoll = dm;
                     new Thread(() -> {
-                        DownloadManager dmPoll = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                        boolean downloading = true;
-                        while (downloading) {
+                        boolean running = true;
+                        while (running) {
                             DownloadManager.Query q = new DownloadManager.Query();
                             q.setFilterById(downloadId);
-                            android.database.Cursor cursor = dmPoll.query(q);
-                            if (cursor != null && cursor.moveToFirst()) {
-                                int statusCol = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                                int downloadedCol = cursor.getColumnIndex(
-                                    DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR);
-                                int totalCol = cursor.getColumnIndex(
-                                    DownloadManager.COLUMN_TOTAL_SIZE_BYTES);
-                                int status = cursor.getInt(statusCol);
-                                long downloaded = cursor.getLong(downloadedCol);
-                                long total = cursor.getLong(totalCol);
-                                cursor.close();
-
-                                if (total > 0) {
-                                    int pct = (int)((downloaded * 100) / total);
-                                    runOnUiThread(() ->
-                                        webView.evaluateJavascript(
-                                            "onApkProgreso(" + pct + ")", null));
+                            Cursor c = dmPoll.query(q);
+                            if (c != null && c.moveToFirst()) {
+                                int st  = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
+                                long dl = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                                long tt = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                                c.close();
+                                if (tt > 0) {
+                                    final int pct = (int)((dl * 100) / tt);
+                                    new Handler(Looper.getMainLooper()).post(() ->
+                                        webView.evaluateJavascript("onApkProgreso(" + pct + ")", null));
                                 }
-                                if (status == DownloadManager.STATUS_SUCCESSFUL ||
-                                    status == DownloadManager.STATUS_FAILED) {
-                                    downloading = false;
-                                }
-                            } else { downloading = false; }
-                            try { Thread.sleep(500); } catch (Exception e) { break; }
+                                if (st == DownloadManager.STATUS_SUCCESSFUL ||
+                                    st == DownloadManager.STATUS_FAILED) running = false;
+                            } else running = false;
+                            try { Thread.sleep(600); } catch (Exception e) { break; }
                         }
                     }).start();
 
                 } catch (Exception e) {
                     webView.evaluateJavascript(
-                        "onApkError('" + e.getMessage() + "')", null);
+                        "onApkError('" + e.getMessage().replace("'","") + "')", null);
                 }
             });
         }
 
-        /** Instala el APK ya descargado */
         @JavascriptInterface
         public void instalarAPK(String apkPath) {
             runOnUiThread(() -> {
                 try {
                     File apkFile = new File(
                         Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DOWNLOADS),
-                        "MiSalud-update.apk");
-
+                            Environment.DIRECTORY_DOWNLOADS), "MiSalud-update.apk");
                     if (!apkFile.exists()) {
                         webView.evaluateJavascript(
                             "onApkError('No se encontró el archivo descargado')", null);
                         return;
                     }
-
                     Uri apkUri;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         apkUri = FileProvider.getUriForFile(MainActivity.this,
@@ -273,7 +250,6 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         apkUri = Uri.fromFile(apkFile);
                     }
-
                     Intent install = new Intent(Intent.ACTION_VIEW);
                     install.setDataAndType(apkUri,
                         "application/vnd.android.package-archive");
@@ -282,26 +258,25 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(install);
                 } catch (Exception e) {
                     webView.evaluateJavascript(
-                        "onApkError('" + e.getMessage() + "')", null);
+                        "onApkError('" + e.getMessage().replace("'","") + "')", null);
                 }
             });
         }
 
-        /** Sincronizar TODOS los datos para alarmas */
         @JavascriptInterface
-        public void sincronizarTodo(String medsJson, String turnosJson,
-                                    String consultasJson, String vacunasJson) {
+        public void sincronizarTodo(String meds, String turnos,
+                                    String consultas, String vacunas) {
             AlarmScheduler.cancelAll(getApplicationContext());
-            AlarmScheduler.saveMedicamentos(getApplicationContext(), medsJson);
-            AlarmScheduler.saveTurnos(getApplicationContext(), turnosJson);
-            AlarmScheduler.saveConsultas(getApplicationContext(), consultasJson);
-            AlarmScheduler.saveVacunas(getApplicationContext(), vacunasJson);
+            AlarmScheduler.saveMedicamentos(getApplicationContext(), meds);
+            AlarmScheduler.saveTurnos(getApplicationContext(), turnos);
+            AlarmScheduler.saveConsultas(getApplicationContext(), consultas);
+            AlarmScheduler.saveVacunas(getApplicationContext(), vacunas);
             AlarmScheduler.scheduleAll(getApplicationContext());
         }
 
         @JavascriptInterface
-        public void actualizarAlarmas(String medsJson) {
-            AlarmScheduler.saveMedicamentos(getApplicationContext(), medsJson);
+        public void actualizarAlarmas(String json) {
+            AlarmScheduler.saveMedicamentos(getApplicationContext(), json);
             AlarmScheduler.cancelAll(getApplicationContext());
             AlarmScheduler.scheduleAll(getApplicationContext());
         }
@@ -337,8 +312,8 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void probarSonido(String tipo) {
             AlarmReceiver.playSound(getApplicationContext(), tipo);
-            new android.os.Handler(android.os.Looper.getMainLooper())
-                    .postDelayed(AlarmReceiver::stopSound, 3000);
+            new Handler(Looper.getMainLooper()).postDelayed(
+                AlarmReceiver::stopSound, 3000);
         }
 
         @JavascriptInterface
@@ -349,22 +324,25 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra(AlarmReceiver.EXTRA_MENSAJE, cuerpo);
             intent.putExtra(AlarmReceiver.EXTRA_TIPO_SONIDO, "suave");
             intent.putExtra(AlarmReceiver.EXTRA_ALARM_ID,
-                    (int)(System.currentTimeMillis() % Integer.MAX_VALUE));
+                (int)(System.currentTimeMillis() % Integer.MAX_VALUE));
             getApplicationContext().sendBroadcast(intent);
         }
 
         @JavascriptInterface
-        public String guardarRespaldo(String jsonContent, String nombreArchivo) {
+        public String guardarRespaldo(String json, String nombre) {
             try {
                 File dir = Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOWNLOADS);
+                    Environment.DIRECTORY_DOWNLOADS);
                 if (!dir.exists()) dir.mkdirs();
-                File file = new File(dir, nombreArchivo);
+                File file = new File(dir, nombre);
                 FileOutputStream fos = new FileOutputStream(file);
-                fos.write(jsonContent.getBytes("UTF-8"));
+                fos.write(json.getBytes("UTF-8"));
                 fos.close();
                 return file.getAbsolutePath();
-            } catch (Exception e) { e.printStackTrace(); return ""; }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "";
+            }
         }
 
         @JavascriptInterface
@@ -378,12 +356,14 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public void vibrate(int ms) {
-            android.os.Vibrator v = (android.os.Vibrator) getSystemService(VIBRATOR_SERVICE);
+            Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
             if (v == null || !v.hasVibrator()) return;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                v.vibrate(android.os.VibrationEffect.createOneShot(
-                        ms, android.os.VibrationEffect.DEFAULT_AMPLITUDE));
-            } else { v.vibrate(ms); }
+                v.vibrate(VibrationEffect.createOneShot(ms,
+                    VibrationEffect.DEFAULT_AMPLITUDE));
+            } else {
+                v.vibrate(ms);
+            }
         }
 
         @JavascriptInterface
@@ -398,26 +378,30 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestAppPermissions() {
         List<String> needed = new ArrayList<>();
-        String[] wanted = {
+        String[] perms = {
             Manifest.permission.VIBRATE,
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.INTERNET,
         };
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            needed.add(Manifest.permission.POST_NOTIFICATIONS);
-        for (String p : wanted) {
-            try {
-                if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED)
-                    needed.add(p);
-            } catch (Exception ignored) {}
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            needed.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            needed.add(Manifest.permission.READ_EXTERNAL_STORAGE);
         }
-        if (!needed.isEmpty())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            needed.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+        for (String p : perms) {
+            if (ContextCompat.checkSelfPermission(this, p)
+                    != PackageManager.PERMISSION_GRANTED) {
+                needed.add(p);
+            }
+        }
+        if (!needed.isEmpty()) {
             ActivityCompat.requestPermissions(this,
-                    needed.toArray(new String[0]), PERMISSION_REQUEST);
+                needed.toArray(new String[0]), PERMISSION_REQUEST);
+        }
     }
 
     @Override
@@ -427,21 +411,28 @@ public class MainActivity extends AppCompatActivity {
             Uri[] results = null;
             if (res == Activity.RESULT_OK && data != null) {
                 String ds = data.getDataString();
-                if (ds != null) results = new Uri[]{Uri.parse(ds)};
-                else if (data.getClipData() != null)
+                if (ds != null) {
+                    results = new Uri[]{Uri.parse(ds)};
+                } else if (data.getClipData() != null) {
                     results = new Uri[]{data.getClipData().getItemAt(0).getUri()};
+                }
             }
             filePathCallback.onReceiveValue(results);
             filePathCallback = null;
         }
     }
 
-    @Override protected void onBackPressed() {
-        if (webView.canGoBack()) webView.goBack(); else super.onBackPressed();
+    @Override
+    public void onBackPressed() {
+        if (webView.canGoBack()) webView.goBack();
+        else super.onBackPressed();
     }
+
     @Override protected void onResume()  { super.onResume();  webView.onResume(); }
     @Override protected void onPause()   { super.onPause();   webView.onPause(); }
-    @Override protected void onDestroy() {
+
+    @Override
+    protected void onDestroy() {
         super.onDestroy();
         try { unregisterReceiver(downloadReceiver); } catch (Exception ignored) {}
         webView.destroy();
