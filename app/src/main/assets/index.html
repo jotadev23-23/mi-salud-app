@@ -754,15 +754,14 @@ canvas{display:block}
 </div>
 
 <!-- UPDATE BANNER -->
-<div class="update-banner" id="updateBanner">
+<div class="update-banner" id="updateBanner" onclick="abrirModalUpdate()" style="cursor:pointer">
   <div class="update-inner">
     <span style="font-size:24px">🔄</span>
     <div class="update-text">
       <strong id="updateBannerTitle">Nueva versión disponible</strong>
-      <span id="updateBannerSub">Tocá para ver cómo actualizar</span>
+      <span id="updateBannerSub">Tocá aquí para actualizar →</span>
     </div>
-    <button class="update-action" onclick="abrirModalUpdate()">Ver</button>
-    <button class="update-close-btn" onclick="cerrarUpdateBanner()" title="El aviso volverá al reabrir la app hasta que actualices">✕</button>
+    <span style="background:rgba(255,255,255,.25);border-radius:10px;padding:7px 14px;font-size:12px;font-weight:900;color:#fff;white-space:nowrap">Ver ›</span>
   </div>
 </div>
 
@@ -2620,33 +2619,21 @@ function mostrarUpdateBanner(data){
   const title  = document.getElementById('updateBannerTitle');
   const sub    = document.getElementById('updateBannerSub');
   if(title) title.textContent = '✨ Versión '+(data.version||'')+' disponible';
-  if(sub)   sub.textContent   = (data.cambios||[]).length+' mejoras nuevas';
-  if(banner){ banner.classList.add('show'); document.body.style.paddingTop='52px'; }
+  if(sub)   sub.textContent   = 'Tocá aquí para actualizar →';
+  if(banner){
+    banner.style.display='';
+    banner.classList.add('show');
+    document.body.style.paddingTop='52px';
+  }
 }
 
 function cerrarUpdateBanner(){
-  // Solo cierra visualmente — reaparece al reabrir la app si no se actualizó
   const banner = document.getElementById('updateBanner');
-  if(banner){
-    banner.style.display='';
-    banner.classList.remove('show');
-    document.body.style.paddingTop='0';
-  }
+  if(banner){ banner.classList.remove('show'); document.body.style.paddingTop='0'; }
 }
 
 function abrirModalUpdate(){
-  // Ocultar banner visualmente mientras el modal está abierto
-  const banner = document.getElementById('updateBanner');
-  if(banner) banner.style.display='none';
-  // Si todavía no cargó _updateData, volver a buscarlo antes de abrir
-  if(!_updateData){
-    checkUpdate().then(()=>{
-      if(_updateData) renderModalUpdate(_updateData);
-      openMod('modalUpdate');
-    });
-    return;
-  }
-  renderModalUpdate(_updateData);
+  if(_updateData) renderModalUpdate(_updateData);
   openMod('modalUpdate');
 }
 
@@ -2677,13 +2664,6 @@ function renderModalUpdate(data){
 
 function posponerUpdate(){
   closeMod('modalUpdate');
-  // Restaurar banner (sigue mostrando hasta que instalen)
-  const banner = document.getElementById('updateBanner');
-  if(banner && _updateData){
-    banner.style.display='';
-    banner.classList.add('show');
-    document.body.style.paddingTop='52px';
-  }
 }
 
 // Llamado desde botón "Actualizar ahora"
