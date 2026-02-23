@@ -1793,32 +1793,7 @@ function verFoto(id){
   const f=D.fotos.find(x=>x.id==id);
   if(!f)return;
   const w=window.open('','_blank');
-  w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${f.data}" style="max-width:100%;max-height:100vh">
-<!-- MODAL ACTUALIZACIÓN -->
-<!-- MODAL ACTUALIZACIÓN v9 -->
-<div class="mo" id="modalUpdate">
-  <div class="modal">
-    <div class="mh"></div>
-    <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:16px;padding:18px 16px;margin-bottom:16px;color:#fff;text-align:center">
-      <div style="font-size:38px;margin-bottom:6px">✨</div>
-      <div style="font-size:17px;font-weight:900" id="umVersion">Nueva versión disponible</div>
-      <div style="font-size:12px;opacity:.85;margin-top:3px">Tus datos se conservan al actualizar</div>
-    </div>
-    <div style="font-size:13px;font-weight:800;color:var(--oscuro);margin-bottom:8px">🆕 Novedades de esta versión</div>
-    <ul id="umCambios" style="list-style:none;padding:0;margin:0 0 14px 0"></ul>
-    <div id="umProgress" style="display:none;margin-bottom:10px">
-      <div style="background:#e5e7eb;border-radius:20px;height:10px;overflow:hidden">
-        <div class="um-fill" style="height:100%;background:linear-gradient(90deg,var(--verde),var(--verde2));border-radius:20px;width:0%;transition:width .3s ease"></div>
-      </div>
-    </div>
-    <div id="umStatus" style="font-size:12px;color:var(--gris);margin-bottom:10px;text-align:center;font-weight:700;min-height:18px"></div>
-    <button id="umBtnActualizar" class="btn" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-size:15px;font-weight:900;padding:14px;width:100%;margin-bottom:8px;border-radius:14px;border:none;cursor:pointer" onclick="iniciarDescargaAPK()">⬇️ Actualizar ahora</button>
-    <button id="umBtnInstalar" class="btn" style="display:none;background:linear-gradient(135deg,var(--verde),var(--verde2));color:#fff;font-size:15px;font-weight:900;padding:14px;width:100%;margin-bottom:8px;border-radius:14px;border:none;cursor:pointer" onclick="instalarAPK()">📲 Instalar actualización</button>
-    <button class="btn" style="background:var(--gris-bg);color:var(--gris);font-size:13px;width:100%" onclick="posponerUpdate()">Más tarde</button>
-  </div>
-</div>
-
-</body></html>`);
+  w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${f.data}" style="max-width:100%;max-height:100vh"></body></html>`);
 }
 
 // ═══════════════════ COMPARTIR ═══════════════════
@@ -2806,6 +2781,29 @@ window.addEventListener('load',()=>{
 </script>
 
 <!-- MODAL ACTUALIZACIÓN -->
+
+<!-- MODAL ACTUALIZACIÓN v9 -->
+<div class="mo" id="modalUpdate">
+  <div class="modal">
+    <div class="mh"></div>
+    <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:16px;padding:18px 16px;margin-bottom:16px;color:#fff;text-align:center">
+      <div style="font-size:38px;margin-bottom:6px">✨</div>
+      <div style="font-size:17px;font-weight:900" id="umVersion">Nueva versión disponible</div>
+      <div style="font-size:12px;opacity:.85;margin-top:3px">Tus datos se conservan al actualizar</div>
+    </div>
+    <div style="font-size:13px;font-weight:800;color:var(--oscuro);margin-bottom:8px">🆕 Novedades de esta versión</div>
+    <ul id="umCambios" style="list-style:none;padding:0;margin:0 0 14px 0"></ul>
+    <div id="umProgress" style="display:none;margin-bottom:10px">
+      <div style="background:#e5e7eb;border-radius:20px;height:10px;overflow:hidden">
+        <div class="um-fill" style="height:100%;background:linear-gradient(90deg,var(--verde),var(--verde2));border-radius:20px;width:0%;transition:width .3s ease"></div>
+      </div>
+    </div>
+    <div id="umStatus" style="font-size:12px;color:var(--gris);margin-bottom:10px;text-align:center;font-weight:700;min-height:18px"></div>
+    <button id="umBtnActualizar" class="btn" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-size:15px;font-weight:900;padding:14px;width:100%;margin-bottom:8px;border-radius:14px;border:none;cursor:pointer" onclick="iniciarDescargaAPK()">⬇️ Actualizar ahora</button>
+    <button id="umBtnInstalar" class="btn" style="display:none;background:linear-gradient(135deg,var(--verde),var(--verde2));color:#fff;font-size:15px;font-weight:900;padding:14px;width:100%;margin-bottom:8px;border-radius:14px;border:none;cursor:pointer" onclick="instalarAPK()">📲 Instalar actualización</button>
+    <button class="btn" style="background:var(--gris-bg);color:var(--gris);font-size:13px;width:100%" onclick="posponerUpdate()">Más tarde</button>
+  </div>
+</div>
 
 </body>
 </html>
