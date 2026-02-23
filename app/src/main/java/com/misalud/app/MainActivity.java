@@ -260,13 +260,29 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override public void run() {
                     try {
-                        File apkFile = new File(
-                            Environment.getExternalStoragePublicDirectory(
-                                Environment.DIRECTORY_DOWNLOADS), "MiSalud-update.apk");
+                        // Siempre buscar en Downloads con nombre fijo
+                        File downloadsDir = Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_DOWNLOADS);
+                        File apkFile = new File(downloadsDir, "MiSalud-update.apk");
+
+                        // Si no está en Downloads, buscar en cache interno
                         if (!apkFile.exists()) {
-                            webView.evaluateJavascript("onApkError('Archivo no encontrado')", null);
+                            File cacheDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+                            if (cacheDir != null) {
+                                File f2 = new File(cacheDir, "MiSalud-update.apk");
+                                if (f2.exists()) apkFile = f2;
+                            }
+                        }
+
+                        if (!apkFile.exists()) {
+                            webView.evaluateJavascript(
+                                "onApkError('Archivo no encontrado en: " + apkFile.getAbsolutePath() + "')", null);
                             return;
                         }
+
+                        // Dar permisos de lectura explícitos
+                        apkFile.setReadable(true, false);
+
                         Uri apkUri;
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                             apkUri = FileProvider.getUriForFile(MainActivity.this,
@@ -274,13 +290,17 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             apkUri = Uri.fromFile(apkFile);
                         }
+
                         Intent install = new Intent(Intent.ACTION_VIEW);
                         install.setDataAndType(apkUri, "application/vnd.android.package-archive");
                         install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        install.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                         install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        install.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(install);
+
                     } catch (Exception e) {
-                        final String msg = e.getMessage() != null ? e.getMessage().replace("'","") : "Error";
+                        final String msg = e.getMessage() != null ? e.getMessage().replace("'","") : "Error desconocido";
                         webView.evaluateJavascript("onApkError('" + msg + "')", null);
                     }
                 }
