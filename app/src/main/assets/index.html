@@ -149,7 +149,7 @@ canvas{display:block}
 
 /* ── CARNET EMERGENCIA ── */
 .carnet{background:linear-gradient(135deg,#1e3a5f,#2563eb);border-radius:var(--r);padding:18px;color:#fff;margin-bottom:12px}
-.carnet-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.carnet-top{display:flex;align-items:center;gap:12px;margin-bottom:14px;width:100%}
 .carnet-avatar{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
 .carnet-name{font-size:18px;font-weight:900}
 .carnet-info{font-size:12px;opacity:.8;margin-top:2px}
@@ -348,10 +348,14 @@ canvas{display:block}
     <div class="carnet" id="homeCarnet">
       <div class="carnet-top">
         <div class="carnet-avatar" id="carnetAvatar">👴</div>
-        <div>
+        <div style="flex:1">
           <div class="carnet-name" id="carnetName">—</div>
           <div class="carnet-info" id="carnetInfo">Completá tu perfil</div>
         </div>
+        <button id="bellBtn" onclick="goPage('notifs')" style="position:relative;background:rgba(255,255,255,0.18);border:none;border-radius:50%;width:42px;height:42px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s" ontouchstart="this.style.transform='scale(.9)'" ontouchend="this.style.transform='scale(1)'">
+          🔔
+          <span id="notifBadge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;border-radius:20px;padding:1px 5px;font-size:9px;font-weight:800;min-width:16px;text-align:center;border:1.5px solid rgba(26,107,90,.3)">0</span>
+        </button>
       </div>
       <div class="carnet-grid">
         <div class="carnet-item"><div class="carnet-lbl">🩸 Sangre</div><div class="carnet-val" id="carnetSangre">—</div></div>
@@ -818,7 +822,6 @@ canvas{display:block}
   <button class="nb" onclick="goPage('recordatorios')" id="nav-recordatorios"><span class="ni">💊</span><span class="nl">Medicam.</span></button>
   <button class="nb" onclick="goPage('vitales')" id="nav-vitales"><span class="ni">❤️</span><span class="nl">Vitales</span></button>
   <button class="nb" onclick="goPage('historia')" id="nav-historia"><span class="ni">🏥</span><span class="nl">Historia</span></button>
-  <button class="nb" style="position:relative" onclick="goPage('notifs')" id="nav-notifs"><span class="ni">🔔</span><span class="nl">Avisos</span><span class="notif-badge" id="notifBadge" style="display:none">0</span></button>
   <button class="nb" onclick="goPage('mas')" id="nav-mas"><span class="ni">⚙️</span><span class="nl">Más</span></button>
   <button class="nb" onclick="goPage('perfil')" id="nav-perfil"><span class="ni">👤</span><span class="nl">Perfil</span></button>
 </nav>
@@ -1117,7 +1120,7 @@ function goPage(p){
   if(nb)nb.classList.add('active');
   if(p==='inicio')renderHome();
   if(p==='calendario')renderCalendario();
-  if(p==='notifs'){renderNotifs();marcarTodasLeidas();}
+  if(p==='notifs'){renderNotifs();setTimeout(marcarTodasLeidas,800);}
   window.scrollTo(0,0);
 }
 
