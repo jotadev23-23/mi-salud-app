@@ -38,28 +38,48 @@ jobs:
           DEFAULT_JVM_OPTS="-Xmx512m -Xms64m"
           APP_HOME=$( cd "${APP_HOME:-./}" && pwd -P ) || exit
           CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
-          if [ -n "$JAVA_HOME" ]; then
-              JAVACMD=$JAVA_HOME/bin/java
-          else
-              JAVACMD=java
-          fi
-          exec "$JAVACMD" $DEFAULT_JVM_OPTS \
-            -classpath "$CLASSPATH" \
-            org.gradle.wrapper.GradleWrapperMain \
-            "$@"
+          if [ -n "$JAVA_HOME" ]; then JAVACMD=$JAVA_HOME/bin/java
+          else JAVACMD=java; fi
+          exec "$JAVACMD" $DEFAULT_JVM_OPTS -classpath "$CLASSPATH" \
+            org.gradle.wrapper.GradleWrapperMain "$@"
           GRADLEW
           chmod +x gradlew
 
       - name: local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Compilar APK (debug firmado)
-        run: ./gradlew assembleDebug --no-daemon
-
-      - name: Localizar y renombrar APK
+      - name: Generar keystore si no existe en Secrets
         run: |
-          APK=$(find . -name "*.apk" | head -1)
-          echo "APK encontrado: $APK"
+          if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "Generando keystore temporal..."
+            keytool -genkeypair \
+              -alias misalud \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass misalud123 \
+              -keypass misalud123 \
+              -dname "CN=MiSalud, OU=App, O=MiSalud, L=AR, S=AR, C=AR" \
+              -keystore misalud.keystore
+            echo "KEYSTORE_GENERADO=true" >> $GITHUB_ENV
+          else
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > misalud.keystore
+            echo "KEYSTORE_GENERADO=false" >> $GITHUB_ENV
+          fi
+
+      - name: Compilar APK Release firmado
+        run: ./gradlew assembleRelease --no-daemon
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/misalud.keystore
+          KEY_ALIAS: misalud
+          KEY_PASSWORD: misalud123
+          STORE_PASSWORD: misalud123
+
+      - name: Localizar APK
+        run: |
+          APK=$(find . -name "*.apk" | grep -i release | head -1)
+          if [ -z "$APK" ]; then APK=$(find . -name "*.apk" | head -1); fi
+          echo "APK: $APK"
           cp "$APK" MiSalud.apk
           ls -lh MiSalud.apk
 
@@ -75,7 +95,6 @@ jobs:
         run: |
           VERSION=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Versión: $VERSION"
 
       - name: Borrar Release anterior
         continue-on-error: true
@@ -93,4 +112,5 @@ jobs:
             ## Mi Salud v${{ steps.version.outputs.version }}
             Instalá el APK adjunto. Tus datos NO se borran al actualizar.
           files: MiSalud.apk
-          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
