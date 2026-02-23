@@ -37,7 +37,6 @@ jobs:
           #!/bin/sh
           DEFAULT_JVM_OPTS="-Xmx512m -Xms64m"
           APP_HOME=$( cd "${APP_HOME:-./}" && pwd -P ) || exit
-          APP_BASE_NAME=${0##*/}
           CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
           if [ -n "$JAVA_HOME" ]; then
               JAVACMD=$JAVA_HOME/bin/java
@@ -54,12 +53,14 @@ jobs:
       - name: local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Compilar APK
+      - name: Compilar APK (debug firmado)
         run: ./gradlew assembleDebug --no-daemon
 
-      - name: Renombrar APK
+      - name: Localizar y renombrar APK
         run: |
-          find . -name "*.apk" -exec cp {} MiSalud.apk \;
+          APK=$(find . -name "*.apk" | head -1)
+          echo "APK encontrado: $APK"
+          cp "$APK" MiSalud.apk
           ls -lh MiSalud.apk
 
       - name: Subir APK como artifact
@@ -67,26 +68,29 @@ jobs:
         with:
           name: MiSalud-APK
           path: MiSalud.apk
-          retention-days: 30
+          retention-days: 60
 
       - name: Leer versión
         id: version
         run: |
           VERSION=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Versión: $VERSION"
 
-      - name: Borrar Release anterior (si existe)
+      - name: Borrar Release anterior
         continue-on-error: true
-        run: gh release delete "v${{ steps.version.outputs.version }}" --yes || true
+        run: gh release delete "v${{ steps.version.outputs.version }}" --yes 2>/dev/null || true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Crear GitHub Release con APK
+      - name: Crear GitHub Release
         continue-on-error: true
         uses: softprops/action-gh-release@v1
         with:
           tag_name: "v${{ steps.version.outputs.version }}"
           name: "Mi Salud v${{ steps.version.outputs.version }}"
+          body: |
+            ## Mi Salud v${{ steps.version.outputs.version }}
+            Instalá el APK adjunto. Tus datos NO se borran al actualizar.
           files: MiSalud.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
