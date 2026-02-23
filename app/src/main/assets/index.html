@@ -2041,7 +2041,7 @@ function exportarDatos(){
       config:D.config||{}
     };
     const jsonStr=JSON.stringify(exportData,null,2);
-    const fecha=new Date().toLocaleDateString('es-AR').replace(/\/g,'-');
+    const fecha=new Date().toLocaleDateString('es-AR').split('/').join('-');
     const nombre='MiSalud_respaldo_'+fecha+'.json';
     const kb=Math.round(jsonStr.length/1024);
 
