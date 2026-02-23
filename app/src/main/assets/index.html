@@ -605,12 +605,12 @@ canvas{display:block}
       <button class="btn btn-g mb12" onclick="exportarDatos()">
         📤 Exportar mis datos (.json)
       </button>
-      <div style="border:2px dashed #e5e7eb;border-radius:14px;padding:14px;text-align:center;cursor:pointer;transition:all .2s" id="importZone" onclick="document.getElementById('importInput').click()" ondragover="event.preventDefault();this.style.borderColor='var(--verde)'" ondragleave="this.style.borderColor='#e5e7eb'">
+      <div style="border:2px dashed #e5e7eb;border-radius:14px;padding:14px;text-align:center;cursor:pointer;transition:all .2s" id="importZone" onclick="abrirImportarArchivo()" ondragover="event.preventDefault();this.style.borderColor='var(--verde)'" ondragleave="this.style.borderColor='#e5e7eb'">
         <div style="font-size:28px">📥</div>
         <div style="font-size:14px;font-weight:700;color:var(--gris);margin-top:6px">Tocá para importar un archivo de respaldo</div>
-        <div style="font-size:11px;color:var(--gris2);margin-top:3px">Soporta archivos .json exportados por esta app</div>
+        <div style="font-size:11px;color:var(--gris2);margin-top:3px">Seleccioná el archivo .json exportado por esta app</div>
       </div>
-      <input type="file" id="importInput" accept=".json,application/json" style="display:none" onchange="importarDatos(event)">
+      <input type="file" id="importInput" accept=".json,application/json,text/plain,*/*" style="display:none" onchange="importarDatos(event)">
       <div id="importStatus" style="margin-top:10px;display:none"></div>
     </div>
 
@@ -1047,7 +1047,7 @@ canvas{display:block}
 
 <script>
 // ═══════════════════ ESTADO GLOBAL ═══════════════════
-const APP_VERSION = '5.0';
+const APP_VERSION = '8.0';
 const GITHUB_REPO = 'jotadev23-23/mi-salud-app';
 
 let D = {
@@ -1345,7 +1345,7 @@ function guardarTurno(){
   D.turnos.sort((a,b)=>a.fecha>b.fecha?1:-1);
   save();closeMod('modalTurno');
   clearF(['tEsp','tLugar','tNota']);
-  renderTurnos();renderHome();toast('📅 Turno guardado');setTimeout(generarNotificacionesProgramadas,300);
+  renderTurnos();renderHome();toast('📅 Turno guardado');setTimeout(()=>{generarNotificacionesProgramadas();syncAlarmasNativas();},300);
 }
 function editTurno(id){
   const t=D.turnos.find(x=>x.id===id);if(!t)return;
@@ -1556,7 +1556,7 @@ function guardarConsulta(){
       indic:document.getElementById('cIndic').value,prox:document.getElementById('cProx').value});
   }
   save();closeMod('modalConsulta');clearF(['cEsp','cMedico','cMotivo','cDx','cIndic','cProx']);
-  renderConsultas();toast('✅ Consulta guardada');setTimeout(generarNotificacionesProgramadas,300);
+  renderConsultas();toast('✅ Consulta guardada');setTimeout(()=>{generarNotificacionesProgramadas();syncAlarmasNativas();},300);
 }
 function editConsulta(id){
   const c=D.consultas.find(x=>x.id===id);if(!c)return;
@@ -1638,7 +1638,7 @@ function guardarVacuna(){
     prox:document.getElementById('vacProx').value,nota:document.getElementById('vacNota').value});
   save();closeMod('modalVacuna');clearF(['vacNota','vacProx']);
   document.getElementById('vacNombre').value='';
-  renderVacunas();toast('✅ Vacuna registrada');
+  renderVacunas();toast('✅ Vacuna registrada');setTimeout(syncAlarmasNativas,300);
 }
 function renderVacunas(){
   const el=document.getElementById('vacunasList');
@@ -2026,9 +2026,8 @@ function closeAlarm(){document.getElementById('alarmBanner').classList.remove('s
 // ═══════════════════ EXPORTAR / IMPORTAR ═══════════════════
 function exportarDatos(){
   try{
-    // Crear copia limpia sin datos muy pesados de fotos para el JSON principal
     const exportData={
-      version:'3.0',
+      version:'8.0',
       exportDate:new Date().toISOString(),
       perfil:D.perfil,
       medicamentos:D.medicamentos,
@@ -2046,35 +2045,39 @@ function exportarDatos(){
       water:D.water,
       config:D.config||{}
     };
-
     const jsonStr=JSON.stringify(exportData,null,2);
+    const fecha=new Date().toLocaleDateString('es-AR').replace(/\/g,'-');
+    const nombre='MiSalud_respaldo_'+fecha+'.json';
+    const kb=Math.round(jsonStr.length/1024);
+
+    // En Android nativo: guardar en Descargas y mostrar path
+    if(window.AndroidBridge&&window.AndroidBridge.guardarRespaldo){
+      const path=window.AndroidBridge.guardarRespaldo(jsonStr,nombre);
+      if(path&&path.length>0){
+        toast('✅ Guardado en Descargas');
+        mostrarEstadoImport(
+          '<strong>✅ Archivo guardado exitosamente</strong><br>'+
+          '<span style="color:var(--gris)">📁 Ubicación: <strong>'+path+'</strong></span><br>'+
+          '<span style="color:var(--gris)">Tamaño: '+kb+' KB</span>',
+          'verde');
+        return;
+      }
+    }
+    // Fallback web: descarga normal
     const blob=new Blob([jsonStr],{type:'application/json'});
     const url=URL.createObjectURL(blob);
-
-    // Nombre del archivo con fecha
-    const fecha=new Date().toLocaleDateString('es-AR').replace(/\//g,'-');
-    const nombre=`MiSalud_respaldo_${fecha}.json`;
-
-    // Descargar
     const a=document.createElement('a');
-    a.href=url;
-    a.download=nombre;
-    document.body.appendChild(a);
-    a.click();
+    a.href=url; a.download=nombre;
+    document.body.appendChild(a); a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-
-    // Mostrar info
-    const kb=Math.round(jsonStr.length/1024);
-    toast(`✅ Datos exportados (${kb} KB)`);
+    toast('✅ Datos exportados ('+kb+' KB)');
     mostrarEstadoImport(
-      `✅ Archivo guardado: <strong>${nombre}</strong><br>
-       <span style="color:var(--gris)">Tamaño: ${kb} KB • ${Object.keys(exportData).length} secciones exportadas</span>`,
-      'verde'
-    );
+      '✅ Archivo guardado: <strong>'+nombre+'</strong><br>'+
+      '<span style="color:var(--gris)">Tamaño: '+kb+' KB • Buscalo en tu carpeta Descargas</span>',
+      'verde');
   }catch(e){
     toast('❌ Error al exportar: '+e.message);
-    console.error(e);
   }
 }
 
@@ -2645,13 +2648,38 @@ function abrirGitHub(){
 
 
 // ═══════════════════ SYNC ALARMAS NATIVAS ═══════════════════
+function abrirImportarArchivo(){
+  // En Android nativo: usar bridge que configura el selector para JSON
+  if(window.AndroidBridge&&window.AndroidBridge.abrirSelectorJson){
+    window.AndroidBridge.abrirSelectorJson();
+  } else {
+    // Fallback web
+    document.getElementById('importInput').click();
+  }
+}
+
 function syncAlarmasNativas(){
   if(!window.AndroidBridge) return;
   try{
+    // Usar método unificado si está disponible (v8+)
+    if(window.AndroidBridge.sincronizarTodo){
+      window.AndroidBridge.sincronizarTodo(
+        JSON.stringify(D.medicamentos||[]),
+        JSON.stringify(D.turnos||[]),
+        JSON.stringify(D.consultas||[]),
+        JSON.stringify(D.vacunas||[])
+      );
+      return;
+    }
+    // Fallback individual
     if(window.AndroidBridge.actualizarAlarmas)
       window.AndroidBridge.actualizarAlarmas(JSON.stringify(D.medicamentos||[]));
     if(window.AndroidBridge.actualizarTurnos)
       window.AndroidBridge.actualizarTurnos(JSON.stringify(D.turnos||[]));
+    if(window.AndroidBridge.actualizarConsultas)
+      window.AndroidBridge.actualizarConsultas(JSON.stringify(D.consultas||[]));
+    if(window.AndroidBridge.actualizarVacunas)
+      window.AndroidBridge.actualizarVacunas(JSON.stringify(D.vacunas||[]));
   }catch(e){console.log('Bridge error:',e);}
 }
 

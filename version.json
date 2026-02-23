@@ -1,11 +1,12 @@
 {
-  "version": "5.0",
-  "descripcion": "Calendario, notificaciones de todos los eventos y aviso de actualizaciones",
-  "fecha": "2026-02-22",
+  "version": "8.0",
+  "descripcion": "Alarmas para turnos, consultas y vacunas. Exportar a Descargas. Importar cualquier archivo.",
+  "fecha": "2026-02-23",
   "cambios": [
-    "Nuevo calendario con todos los eventos",
-    "Centro de notificaciones",
-    "Aviso automático de actualizaciones",
-    "Notificaciones nativas Android para turnos y vacunas"
+    "Notificaciones nativas para TODOS los eventos con fecha",
+    "Alarma dia anterior y 2h antes del turno",
+    "Alarma 7 dias antes de vacuna proxima dosis",
+    "Exportar respaldo guarda en Descargas y muestra la ruta",
+    "Importar ahora soporta cualquier tipo de archivo"
   ]
 }

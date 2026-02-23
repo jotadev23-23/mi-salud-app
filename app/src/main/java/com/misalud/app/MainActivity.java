@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.webkit.ConsoleMessage;
 import android.webkit.GeolocationPermissions;
@@ -22,27 +23,30 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
     private ValueCallback<Uri[]> filePathCallback;
-    private static final int FILE_CHOOSER_REQUEST  = 1;
-    private static final int PERMISSION_REQUEST    = 2;
+    private static final int FILE_CHOOSER_REQUEST = 1;
+    private static final int PERMISSION_REQUEST   = 2;
+    private boolean fileChooserForJson = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Crear canales de notificación al iniciar
         AlarmReceiver.createChannels(this);
 
         webView = findViewById(R.id.webview);
-
-        // ── WebSettings ──────────────────────────────────────────────────────
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -59,10 +63,8 @@ public class MainActivity extends AppCompatActivity {
         s.setBuiltInZoomControls(false);
         s.setDisplayZoomControls(false);
 
-        // ── Puente JS ↔ Android ───────────────────────────────────────────────
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
 
-        // ── WebViewClient ─────────────────────────────────────────────────────
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest req) {
@@ -79,29 +81,39 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // ── WebChromeClient ───────────────────────────────────────────────────
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onGeolocationPermissionsShowPrompt(String origin,
-                    GeolocationPermissions.Callback cb) {
-                cb.invoke(origin, true, false);
-            }
+                    GeolocationPermissions.Callback cb) { cb.invoke(origin, true, false); }
             @Override
             public void onPermissionRequest(PermissionRequest request) {
                 request.grant(request.getResources());
             }
             @Override
             public boolean onShowFileChooser(WebView view,
-                    ValueCallback<Uri[]> filePath,
-                    FileChooserParams params) {
+                    ValueCallback<Uri[]> filePath, FileChooserParams params) {
                 filePathCallback = filePath;
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("image/*");
-                Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                Intent chooser = Intent.createChooser(intent, "Seleccionar imagen");
-                chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{camera});
-                startActivityForResult(chooser, FILE_CHOOSER_REQUEST);
+                if (fileChooserForJson) {
+                    // Selector específico para archivos JSON/cualquier tipo
+                    fileChooserForJson = false;
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("*/*");
+                    String[] mimeTypes = {"application/json", "text/plain", "text/*", "*/*"};
+                    intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+                    startActivityForResult(
+                        Intent.createChooser(intent, "Seleccionar respaldo .json"),
+                        FILE_CHOOSER_REQUEST);
+                } else {
+                    // Selector de imágenes (para fotos)
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("image/*");
+                    Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    Intent chooser = Intent.createChooser(intent, "Seleccionar imagen");
+                    chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{camera});
+                    startActivityForResult(chooser, FILE_CHOOSER_REQUEST);
+                }
                 return true;
             }
             @Override
@@ -112,61 +124,114 @@ public class MainActivity extends AppCompatActivity {
         webView.loadUrl("file:///android_asset/index.html");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  PUENTE JavaScript ↔ Android
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════
+    //  BRIDGE JS ↔ Android
+    // ═══════════════════════════════════════════════════════════════════════
     public class AndroidBridge {
 
-        /**
-         * Llamado desde JS cuando el usuario guarda/modifica medicamentos.
-         * Reprograma todas las alarmas nativas.
-         * @param medicamentosJson  JSON string con array de medicamentos
-         */
+        /** Sincronizar TODOS los datos para alarmas */
         @JavascriptInterface
-        public void actualizarTurnos(String turnosJson) {
-            AlarmScheduler.scheduleTurnos(getApplicationContext(), turnosJson);
-        }
-
-        @JavascriptInterface
-        public void actualizarAlarmas(String medicamentosJson) {
+        public void sincronizarTodo(String medsJson, String turnosJson,
+                                    String consultasJson, String vacunasJson) {
             AlarmScheduler.cancelAll(getApplicationContext());
-            AlarmScheduler.saveMedicamentos(getApplicationContext(), medicamentosJson);
+            AlarmScheduler.saveMedicamentos(getApplicationContext(), medsJson);
+            AlarmScheduler.saveTurnos(getApplicationContext(), turnosJson);
+            AlarmScheduler.saveConsultas(getApplicationContext(), consultasJson);
+            AlarmScheduler.saveVacunas(getApplicationContext(), vacunasJson);
             AlarmScheduler.scheduleAll(getApplicationContext());
         }
 
-        /**
-         * Llamado desde JS cuando el usuario cambia tipo de sonido (suave/intenso).
-         */
+        @JavascriptInterface
+        public void actualizarAlarmas(String medsJson) {
+            AlarmScheduler.saveMedicamentos(getApplicationContext(), medsJson);
+            AlarmScheduler.cancelAll(getApplicationContext());
+            AlarmScheduler.scheduleAll(getApplicationContext());
+        }
+
+        @JavascriptInterface
+        public void actualizarTurnos(String turnosJson) {
+            AlarmScheduler.saveTurnos(getApplicationContext(), turnosJson);
+            AlarmScheduler.cancelAll(getApplicationContext());
+            AlarmScheduler.scheduleAll(getApplicationContext());
+        }
+
+        @JavascriptInterface
+        public void actualizarConsultas(String consultasJson) {
+            AlarmScheduler.saveConsultas(getApplicationContext(), consultasJson);
+            AlarmScheduler.cancelAll(getApplicationContext());
+            AlarmScheduler.scheduleAll(getApplicationContext());
+        }
+
+        @JavascriptInterface
+        public void actualizarVacunas(String vacunasJson) {
+            AlarmScheduler.saveVacunas(getApplicationContext(), vacunasJson);
+            AlarmScheduler.cancelAll(getApplicationContext());
+            AlarmScheduler.scheduleAll(getApplicationContext());
+        }
+
         @JavascriptInterface
         public void setTipoSonido(String tipo) {
             AlarmScheduler.saveTipoSonido(getApplicationContext(), tipo);
-            // Reprogramar con nuevo sonido
             AlarmScheduler.cancelAll(getApplicationContext());
             AlarmScheduler.scheduleAll(getApplicationContext());
         }
 
-        /**
-         * Llamado desde JS para probar el sonido directamente.
-         */
         @JavascriptInterface
         public void probarSonido(String tipo) {
             AlarmReceiver.playSound(getApplicationContext(), tipo);
-            // Parar el sonido de prueba después de 3 segundos
             new android.os.Handler(android.os.Looper.getMainLooper())
                     .postDelayed(AlarmReceiver::stopSound, 3000);
         }
 
         @JavascriptInterface
+        public void mostrarNotificacion(String titulo, String cuerpo, String tipo) {
+            AlarmReceiver.createChannels(getApplicationContext());
+            Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+            intent.putExtra(AlarmReceiver.EXTRA_TITULO, titulo);
+            intent.putExtra(AlarmReceiver.EXTRA_MENSAJE, cuerpo);
+            intent.putExtra(AlarmReceiver.EXTRA_TIPO_SONIDO, "suave");
+            intent.putExtra(AlarmReceiver.EXTRA_ALARM_ID,
+                    (int)(System.currentTimeMillis() % Integer.MAX_VALUE));
+            getApplicationContext().sendBroadcast(intent);
+        }
+
+        /** Guardar JSON de respaldo en Descargas y devolver el path */
+        @JavascriptInterface
+        public String guardarRespaldo(String jsonContent, String nombreArchivo) {
+            try {
+                File downloadsDir = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS);
+                if (!downloadsDir.exists()) downloadsDir.mkdirs();
+                File file = new File(downloadsDir, nombreArchivo);
+                FileOutputStream fos = new FileOutputStream(file);
+                fos.write(jsonContent.getBytes("UTF-8"));
+                fos.close();
+                return file.getAbsolutePath();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "";
+            }
+        }
+
+        /** Indica al WebView que el próximo file chooser es para JSON */
+        @JavascriptInterface
+        public void abrirSelectorJson() {
+            runOnUiThread(() -> {
+                fileChooserForJson = true;
+                // Trigger the file chooser via JS click on a hidden input
+                webView.evaluateJavascript(
+                    "document.getElementById('importInput').click();", null);
+            });
+        }
+
+        @JavascriptInterface
         public void vibrate(int ms) {
-            android.os.Vibrator v = (android.os.Vibrator)
-                    getSystemService(VIBRATOR_SERVICE);
+            android.os.Vibrator v = (android.os.Vibrator) getSystemService(VIBRATOR_SERVICE);
             if (v == null || !v.hasVibrator()) return;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 v.vibrate(android.os.VibrationEffect.createOneShot(
                         ms, android.os.VibrationEffect.DEFAULT_AMPLITUDE));
-            } else {
-                v.vibrate(ms);
-            }
+            } else { v.vibrate(ms); }
         }
 
         @JavascriptInterface
@@ -176,56 +241,29 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @JavascriptInterface
-        public String getVersion() { return "5.0"; }
-
-        /**
-         * Llamado desde JS para mostrar notificacion nativa de cualquier tipo de evento.
-         * tipo: "turno", "consulta", "vacuna", "med", "update"
-         */
-        @JavascriptInterface
-        public void mostrarNotificacion(String titulo, String cuerpo, String tipo) {
-            AlarmReceiver.createChannels(getApplicationContext());
-            Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
-            intent.putExtra(AlarmReceiver.EXTRA_TITULO, titulo);
-            intent.putExtra(AlarmReceiver.EXTRA_MENSAJE, cuerpo);
-            // Tipo update y turno usan sonido suave, med puede ser intenso segun config
-            String sonido = "med".equals(tipo) ? 
-                android.content.SharedPreferences.class.cast(
-                    getApplicationContext().getSharedPreferences("MiSaludAlarms", 0))
-                    .getString("tipoSonido", "suave") : "suave";
-            intent.putExtra(AlarmReceiver.EXTRA_TIPO_SONIDO, sonido);
-            int alarmId = (int)(System.currentTimeMillis() % Integer.MAX_VALUE);
-            intent.putExtra(AlarmReceiver.EXTRA_ALARM_ID, alarmId);
-            // Disparar inmediatamente via broadcast
-            getApplicationContext().sendBroadcast(intent);
-        }
+        public String getVersion() { return "8.0"; }
     }
 
-    // ── Permisos ──────────────────────────────────────────────────────────────
     private void requestAppPermissions() {
         List<String> needed = new ArrayList<>();
         String[] wanted = {
-                Manifest.permission.VIBRATE,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.CAMERA,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.SCHEDULE_EXACT_ALARM,
+            Manifest.permission.VIBRATE,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.SCHEDULE_EXACT_ALARM,
         };
-        // Android 13+: permiso de notificaciones
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
             needed.add(Manifest.permission.POST_NOTIFICATIONS);
-        }
         for (String p : wanted) {
-            if (ContextCompat.checkSelfPermission(this, p)
-                    != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED)
                 needed.add(p);
-            }
         }
-        if (!needed.isEmpty()) {
+        if (!needed.isEmpty())
             ActivityCompat.requestPermissions(this,
                     needed.toArray(new String[0]), PERMISSION_REQUEST);
-        }
     }
 
     @Override
@@ -236,6 +274,9 @@ public class MainActivity extends AppCompatActivity {
             if (res == Activity.RESULT_OK && data != null) {
                 String ds = data.getDataString();
                 if (ds != null) results = new Uri[]{Uri.parse(ds)};
+                else if (data.getClipData() != null) {
+                    results = new Uri[]{data.getClipData().getItemAt(0).getUri()};
+                }
             }
             filePathCallback.onReceiveValue(results);
             filePathCallback = null;
@@ -243,8 +284,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override public void onBackPressed() {
-        if (webView.canGoBack()) webView.goBack();
-        else super.onBackPressed();
+        if (webView.canGoBack()) webView.goBack(); else super.onBackPressed();
     }
     @Override protected void onResume()  { super.onResume();  webView.onResume(); }
     @Override protected void onPause()   { super.onPause();   webView.onPause(); }
