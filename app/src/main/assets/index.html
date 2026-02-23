@@ -444,7 +444,7 @@ canvas{display:block}
           <div class="sl" style="color:var(--naranja)">Cal.</div>
         </div>
       </div>
-      <button class="btn btn-g mt8" style="font-size:13px;padding:10px" onclick="openMod('modalActividad')">+ Registrar actividad</button>
+      <button class="btn btn-g mt8" style="font-size:13px;padding:10px" onclick="abrirModal('modalActividad')">+ Registrar actividad</button>
     </div>
 
     <!-- SUEÑO HOY -->
@@ -452,7 +452,7 @@ canvas{display:block}
       <div class="ct"><span>😴</span> Sueño</div>
       <div style="font-size:13px;color:var(--gris);font-weight:600" id="sleepLbl">Sin registro de anoche</div>
       <div class="sleep-bar"><div class="sleep-fill" id="sleepFill" style="width:0%"></div></div>
-      <button class="btn btn-m mt8" style="font-size:13px;padding:10px" onclick="openMod('modalSueno')">+ Registrar sueño</button>
+      <button class="btn btn-m mt8" style="font-size:13px;padding:10px" onclick="abrirModal('modalSueno')">+ Registrar sueño</button>
     </div>
 
     <!-- PRÓXIMOS TURNOS -->
@@ -471,7 +471,7 @@ canvas{display:block}
     <p>Recordatorios y alarmas</p>
   </div>
   <div class="sb">
-    <button class="btn btn-o mb12" onclick="openMod('modalMed')">+ Agregar Medicamento</button>
+    <button class="btn btn-o mb12" onclick="abrirModal('modalMed')">+ Agregar Medicamento</button>
     <div class="card">
       <div class="ct"><span>📋</span> Mis Medicamentos</div>
       <div id="medList"><div class="empty"><div class="ei">💊</div><p>Sin medicamentos registrados.</p></div></div>
@@ -540,7 +540,7 @@ canvas{display:block}
 
     <!-- TAB: TURNOS -->
     <div id="tab-turnos-hist">
-      <button class="btn btn-azul mb12" style="background:var(--azul);color:#fff" onclick="openMod('modalTurno')">+ Agendar Turno</button>
+      <button class="btn btn-azul mb12" style="background:var(--azul);color:#fff" onclick="abrirModal('modalTurno')">+ Agendar Turno</button>
       <div class="card"><div id="turnosListHist"><div class="empty"><div class="ei">📅</div><p>Sin turnos agendados.</p></div></div></div>
     </div>
 
@@ -573,23 +573,23 @@ canvas{display:block}
 
     <!-- TAB: CONSULTAS -->
     <div id="tab-consultas" style="display:none">
-      <button class="btn btn-a mb12" onclick="openMod('modalConsulta')">+ Nueva Consulta</button>
+      <button class="btn btn-a mb12" onclick="abrirModal('modalConsulta')">+ Nueva Consulta</button>
       <div class="card"><div id="consultasList"><div class="empty"><div class="ei">🏥</div><p>Sin consultas.</p></div></div></div>
     </div>
     <div id="tab-enfermedades" style="display:none">
-      <button class="btn btn-a mb12" onclick="openMod('modalEnfermedad')">+ Agregar Condición</button>
+      <button class="btn btn-a mb12" onclick="abrirModal('modalEnfermedad')">+ Agregar Condición</button>
       <div class="card"><div id="enfermedadesList"><div class="empty"><div class="ei">🩺</div><p>Sin condiciones.</p></div></div></div>
     </div>
     <div id="tab-alergias" style="display:none">
-      <button class="btn btn-a mb12" onclick="openMod('modalAlergia')">+ Agregar Alergia</button>
+      <button class="btn btn-a mb12" onclick="abrirModal('modalAlergia')">+ Agregar Alergia</button>
       <div class="card"><div id="alergiasList"><div class="empty"><div class="ei">⚠️</div><p>Sin alergias.</p></div></div></div>
     </div>
     <div id="tab-vacunas" style="display:none">
-      <button class="btn btn-a mb12" onclick="openMod('modalVacuna')">+ Agregar Vacuna</button>
+      <button class="btn btn-a mb12" onclick="abrirModal('modalVacuna')">+ Agregar Vacuna</button>
       <div class="card"><div id="vacunasList"><div class="empty"><div class="ei">💉</div><p>Sin vacunas registradas.</p></div></div></div>
     </div>
     <div id="tab-dieta" style="display:none">
-      <button class="btn btn-a mb12" onclick="openMod('modalDieta')">+ Agregar Restricción</button>
+      <button class="btn btn-a mb12" onclick="abrirModal('modalDieta')">+ Agregar Restricción</button>
       <div class="card">
         <div class="ct"><span>🍽️</span> Restricciones Alimentarias</div>
         <div id="dietaList"><div class="empty"><div class="ei">🍽️</div><p>Sin restricciones registradas.</p></div></div>
@@ -649,7 +649,7 @@ canvas{display:block}
     <!-- NOTAS MÉDICAS -->
     <div class="card">
       <div class="ct"><span>📝</span> Notas Médicas</div>
-      <button class="btn btn-g mb12" style="font-size:13px;padding:10px" onclick="openMod('modalNota')">+ Nueva Nota</button>
+      <button class="btn btn-g mb12" style="font-size:13px;padding:10px" onclick="abrirModal('modalNota')">+ Nueva Nota</button>
       <div id="notasList"><div class="empty"><div class="ei">📝</div><p>Sin notas.</p></div></div>
     </div>
 
@@ -836,7 +836,7 @@ canvas{display:block}
 <!-- ══════════════════ MODALES ══════════════════ -->
 
 <!-- MEDICAMENTO -->
-<div class="mo" id="modalMed" onclick="closeOut(event,'modalMed')">
+<div class="mo" id="modalMed" onclick="closeOutModal(event,'modalMed')">
   <div class="modal">
     <div class="mh"></div><div class="mt">💊 Nuevo Medicamento</div>
     <div class="fg"><label class="fl">Nombre *</label><input class="fi" id="mNombre" placeholder="Ej: Atenolol, Metformina..."></div>
@@ -870,7 +870,7 @@ canvas{display:block}
 </div>
 
 <!-- TURNO -->
-<div class="mo" id="modalTurno" onclick="closeOut(event,'modalTurno')">
+<div class="mo" id="modalTurno" onclick="closeOutModal(event,'modalTurno')">
   <div class="modal">
     <div class="mh"></div><div class="mt">📅 Nuevo Turno</div>
     <div class="fg"><label class="fl">Especialidad / Médico *</label><input class="fi" id="tEsp" placeholder="Dr. García - Cardiología"></div>
@@ -937,7 +937,7 @@ canvas{display:block}
 </div>
 
 <!-- CONSULTA -->
-<div class="mo" id="modalConsulta" onclick="closeOut(event,'modalConsulta')">
+<div class="mo" id="modalConsulta" onclick="closeOutModal(event,'modalConsulta')">
   <div class="modal">
     <div class="mh"></div><div class="mt">🏥 Nueva Consulta Médica</div>
     <div class="g2">
@@ -1043,7 +1043,7 @@ canvas{display:block}
 </div>
 
 <!-- NOTA -->
-<div class="mo" id="modalNota" onclick="closeOut(event,'modalNota')">
+<div class="mo" id="modalNota" onclick="closeOutModal(event,'modalNota')">
   <div class="modal">
     <div class="mh"></div><div class="mt">📝 Nueva Nota</div>
     <div class="fg"><label class="fl">Título</label><input class="fi" id="nTitulo" placeholder="Ej: Instrucciones del médico"></div>
@@ -1133,6 +1133,25 @@ function goPage(p){
 }
 
 // ═══════════════════ MODALES ═══════════════════
+function abrirModal(id){
+  const fieldMap={"modalMed": ["mNombre", "mDosis", "mHora", "mNota"], "modalTurno": ["tEsp", "tFecha", "tHora", "tLugar", "tNota"], "modalConsulta": ["cFecha", "cEsp", "cMedico", "cMotivo", "cDx", "cIndic", "cProx"], "modalEnfermedad": ["enNombre", "enDesde", "enNota"], "modalAlergia": ["alNombre", "alRea"], "modalVacuna": ["vacNota", "vacProx"], "modalDieta": ["dAlimento", "dMotivo"], "modalNota": ["nTitulo", "nContenido"], "modalActividad": ["actPasos", "actSentido"], "modalSueno": ["sHDormi", "sHDesperte", "sNota"]};
+  const selectMap={"modalMed": [["mFreq", "diario"], ["mColor", "#e8743b"]], "modalAlergia": [["alTipo", "alimentaria"], ["alGrav", "leve"]], "modalActividad": [["actTipo", "caminata"], ["actIntensidad", "moderada"]], "modalSueno": [["sCalidad", "buena"]], "modalEnfermedad": [["enEstado", "activa"]], "modalVacuna": [["vacNombre", ""]], "modalDieta": [["dTipo", "evitar"]]};
+  (fieldMap[id]||[]).forEach(function(fid){var el=document.getElementById(fid);if(el)el.value='';});
+  (selectMap[id]||[]).forEach(function(pair){var el=document.getElementById(pair[0]);if(el)el.value=pair[1];});
+  if(id==='modalMed'){editingMedId=null;var t=document.querySelector('#modalMed .mt');if(t)t.textContent='💊 Nuevo Medicamento';}
+  if(id==='modalTurno'){editingTurnoId=null;var t=document.querySelector('#modalTurno .mt');if(t)t.textContent='📅 Nuevo Turno';}
+  if(id==='modalConsulta'){editingConsultaId=null;var t=document.querySelector('#modalConsulta .mt');if(t)t.textContent='🩺 Nueva Consulta';}
+  if(id==='modalNota'){editingNotaId=null;var t=document.querySelector('#modalNota .mt');if(t)t.textContent='📝 Nueva Nota';}
+  openMod(id);
+}
+function closeOutModal(e,id){
+  if(e.target!==document.getElementById(id))return;
+  if(id==='modalMed'){editingMedId=null;var t=document.querySelector('#modalMed .mt');if(t)t.textContent='💊 Nuevo Medicamento';}
+  if(id==='modalTurno'){editingTurnoId=null;var t=document.querySelector('#modalTurno .mt');if(t)t.textContent='📅 Nuevo Turno';}
+  if(id==='modalConsulta'){editingConsultaId=null;var t=document.querySelector('#modalConsulta .mt');if(t)t.textContent='🩺 Nueva Consulta';}
+  if(id==='modalNota'){editingNotaId=null;var t=document.querySelector('#modalNota .mt');if(t)t.textContent='📝 Nueva Nota';}
+  closeMod(id);
+}
 function openMod(id){document.getElementById(id).classList.add('open');}
 function closeMod(id){document.getElementById(id).classList.remove('open');}
 function closeOut(e,id){if(e.target===document.getElementById(id))closeMod(id);}
@@ -1252,7 +1271,9 @@ function renderWater(){
 }
 function toggleWater(i){
   const hoy=new Date().toISOString().split('T')[0];
-  D.water[hoy]=i+1;
+  const actual=D.water[hoy]||0;
+  // Si toco el mismo vaso que ya es el último, lo quito (toggle)
+  D.water[hoy]=(actual===i+1)?i:i+1;
   save();renderWater();
 }
 
@@ -1434,7 +1455,7 @@ function renderHomeTurnos(){
 // ═══════════════════ VITALES ═══════════════════
 function guardarVitales(){
   const e={id:Date.now(),fecha:new Date().toISOString(),
-    pa:document.getElementById('inPA').value,
+    pa:document.getElementById('inPA').value.replace(/[^0-9/]/g,''),
     fc:document.getElementById('inFC').value,
     temp:document.getElementById('inTemp').value,
     so2:document.getElementById('inSO2').value,
@@ -1829,15 +1850,16 @@ function compartirResumen(){
 
 // ═══════════════════ MAPA ═══════════════════
 function buscarCerca(tipo){
-  if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(pos=>{
-      const url=`https://maps.google.com/?q=${tipo}+cerca&near=${pos.coords.latitude},${pos.coords.longitude}`;
-      window.open(url,'_blank');
-    },()=>{
-      window.open(`https://maps.google.com/?q=${tipo}+cerca`,'_blank');
-    });
+  // Usar geo: URI — Android lo delega a Google Maps directamente
+  // sin bloquear el WebView con permisos de geolocalización
+  const query = encodeURIComponent(tipo + ' cerca');
+  const geoUrl = 'geo:0,0?q=' + query;
+  if(window.AndroidBridge){
+    // En Android nativo: abrir con Intent externo
+    window.location.href = geoUrl;
   } else {
-    window.open(`https://maps.google.com/?q=${tipo}+cerca`,'_blank');
+    // Fallback web
+    window.open('https://maps.google.com/?q=' + query, '_blank');
   }
 }
 
@@ -1928,7 +1950,7 @@ function testSound(tipo){
   }catch(e){toast('⚠️ Activá el audio en tu dispositivo');}
 }
 
-function selectSound(tipo){
+function selectSound(tipo, silencioso){
   selectedSound=tipo;
   D.config=D.config||{};D.config.sound=tipo;save();
   ['suave','intenso'].forEach(t=>{
@@ -1944,7 +1966,7 @@ function selectSound(tipo){
       el.querySelector('div:nth-child(2)').style.color='var(--gris)';
     }
   });
-  toast(tipo==='intenso'?'🔔 Sonido intenso seleccionado':'🎵 Sonido suave seleccionado');
+  if(!silencioso) toast(tipo==='intenso'?'🔔 Sonido intenso seleccionado':'🎵 Sonido suave seleccionado');
   // Notificar al sistema nativo Android
   if(window.AndroidBridge && window.AndroidBridge.setTipoSonido){
     window.AndroidBridge.setTipoSonido(tipo);
@@ -1954,7 +1976,7 @@ function selectSound(tipo){
 function loadSoundConfig(){
   if(D.config&&D.config.sound){
     selectedSound=D.config.sound;
-    selectSound(selectedSound);
+    selectSound(selectedSound, true); // true = sin toast
   }
 }
 
@@ -1999,7 +2021,7 @@ function closeAlarm(){document.getElementById('alarmBanner').classList.remove('s
 function exportarDatos(){
   try{
     const exportData={
-      version:'8.0',
+      version:'9.0',
       exportDate:new Date().toISOString(),
       perfil:D.perfil,
       medicamentos:D.medicamentos,
