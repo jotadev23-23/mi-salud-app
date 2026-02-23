@@ -28,16 +28,33 @@ jobs:
           curl -sLo gradle/wrapper/gradle-wrapper.jar \
             "https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradle/wrapper/gradle-wrapper.jar"
 
+      - name: Regenerar gradlew correcto
+        run: |
+          cat > gradlew << 'GRADLEW'
+          #!/bin/sh
+          DEFAULT_JVM_OPTS="-Xmx512m -Xms64m"
+          APP_HOME=$( cd "${APP_HOME:-./}" && pwd -P ) || exit
+          APP_BASE_NAME=${0##*/}
+          CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
+          if [ -n "$JAVA_HOME" ]; then
+              JAVACMD=$JAVA_HOME/bin/java
+          else
+              JAVACMD=java
+          fi
+          exec "$JAVACMD" $DEFAULT_JVM_OPTS \
+            -classpath "$CLASSPATH" \
+            org.gradle.wrapper.GradleWrapperMain \
+            "$@"
+          GRADLEW
+          chmod +x gradlew
+
       - name: local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
-
-      - name: Permisos gradlew
-        run: chmod +x gradlew
 
       - name: Compilar APK
         run: ./gradlew assembleDebug --no-daemon
 
-      - name: Buscar APK
+      - name: Buscar APK generado
         run: find . -name "*.apk" -type f
 
       - name: Subir APK
