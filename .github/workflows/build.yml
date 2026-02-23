@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK y Release
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
           curl -sLo gradle/wrapper/gradle-wrapper.jar \
             "https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradle/wrapper/gradle-wrapper.jar"
 
-      - name: Regenerar gradlew correcto
+      - name: Regenerar gradlew
         run: |
           cat > gradlew << 'GRADLEW'
           #!/bin/sh
@@ -54,12 +54,36 @@ jobs:
       - name: Compilar APK
         run: ./gradlew assembleDebug --no-daemon
 
-      - name: Buscar APK generado
-        run: find . -name "*.apk" -type f
+      - name: Renombrar APK
+        run: |
+          find . -name "*.apk" -exec cp {} MiSalud.apk \;
+          ls -lh MiSalud.apk
 
-      - name: Subir APK
+      - name: Leer versión
+        id: version
+        run: |
+          VERSION=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Versión detectada: $VERSION"
+
+      - name: Borrar Release anterior (si existe)
+        run: |
+          gh release delete "v${{ steps.version.outputs.version }}" --yes || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Crear GitHub Release con APK
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "v${{ steps.version.outputs.version }}"
+          name: "Mi Salud v${{ steps.version.outputs.version }}"
+          body_path: version.json
+          files: MiSalud.apk
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Subir APK como artifact también
         uses: actions/upload-artifact@v4
         with:
           name: MiSalud-APK
-          path: "**/*.apk"
+          path: MiSalud.apk
           retention-days: 30
